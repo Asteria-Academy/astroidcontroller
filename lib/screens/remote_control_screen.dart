@@ -17,6 +17,8 @@ class RemoteControlScreen extends StatefulWidget {
 class _RemoteControlScreenState extends State<RemoteControlScreen> {
   Timer? _driveTimer;
   Timer? _headTimer;
+  BluetoothService?
+  _bluetoothService; // Store reference to avoid dispose() issues
 
   bool _isGripperOpen = true;
   Color _currentLedColor = Colors.deepPurpleAccent;
@@ -28,24 +30,44 @@ class _RemoteControlScreenState extends State<RemoteControlScreen> {
   bool _gestureLauncher = false;
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Save reference to BluetoothService early, so we can use it safely in dispose()
+    try {
+      _bluetoothService ??= context.read<BluetoothService>();
+    } catch (e) {
+      debugPrint("BluetoothService not available: $e");
+      // Continue without BluetoothService (demo mode)
+    }
+  }
+
+  @override
   void initState() {
     super.initState();
-    _driveTimer = Timer.periodic(const Duration(milliseconds: 100), (_) => _sendDriveCommand());
-    _headTimer = Timer.periodic(const Duration(milliseconds: 100), (_) => _sendHeadCommand());
+    _driveTimer = Timer.periodic(
+      const Duration(milliseconds: 100),
+      (_) => _sendDriveCommand(),
+    );
+    _headTimer = Timer.periodic(
+      const Duration(milliseconds: 100),
+      (_) => _sendHeadCommand(),
+    );
   }
 
   @override
   void dispose() {
     _driveTimer?.cancel();
     _headTimer?.cancel();
-    _sendCommand({"command": "DRIVE_DIRECT", "params": {"left_speed": 0, "right_speed": 0}});
+    // Use stored reference instead of context.read() which is unsafe during dispose
+    _bluetoothService?.sendCommand({
+      "command": "DRIVE_DIRECT",
+      "params": {"left_speed": 0, "right_speed": 0},
+    });
     super.dispose();
   }
 
   void _sendCommand(Map<String, dynamic> command) {
-    if (mounted) {
-      context.read<BluetoothService>().sendCommand(command);
-    }
+    _bluetoothService?.sendCommand(command);
   }
 
   void _sendDriveCommand() {
@@ -56,7 +78,10 @@ class _RemoteControlScreenState extends State<RemoteControlScreen> {
     int leftSpeed = (speed + turn).clamp(-100, 100).toInt();
     int rightSpeed = (speed - turn).clamp(-100, 100).toInt();
     if (leftSpeed != 0 || rightSpeed != 0 || _driveX != 0 || _driveY != 0) {
-      _sendCommand({"command": "DRIVE_DIRECT", "params": {"left_speed": leftSpeed, "right_speed": rightSpeed}});
+      _sendCommand({
+        "command": "DRIVE_DIRECT",
+        "params": {"left_speed": leftSpeed, "right_speed": rightSpeed},
+      });
     }
   }
 
@@ -64,13 +89,19 @@ class _RemoteControlScreenState extends State<RemoteControlScreen> {
     int yaw = (95 + (_headX * 75)).clamp(20, 170).toInt();
     int pitch = (95 + (-_headY * 75)).clamp(20, 170).toInt();
     if (_headX != 0 || _headY != 0) {
-      _sendCommand({"command": "SET_HEAD_POSITION", "params": {"pitch": pitch, "yaw": yaw}});
+      _sendCommand({
+        "command": "SET_HEAD_POSITION",
+        "params": {"pitch": pitch, "yaw": yaw},
+      });
     }
   }
 
   void _toggleGripper() {
     setState(() => _isGripperOpen = !_isGripperOpen);
-    _sendCommand({"command": "SET_GRIPPER", "params": {"state": _isGripperOpen ? "open" : "closed"}});
+    _sendCommand({
+      "command": "SET_GRIPPER",
+      "params": {"state": _isGripperOpen ? "open" : "closed"},
+    });
   }
 
   void _setGestureMode(String mode, bool active) {
@@ -79,7 +110,10 @@ class _RemoteControlScreenState extends State<RemoteControlScreen> {
       if (mode == "sketcher") _gestureSketcher = active;
       if (mode == "launcher") _gestureLauncher = active;
     });
-    _sendCommand({"command": "SET_GESTURE_MODE", "params": {"mode": mode, "active": active}});
+    _sendCommand({
+      "command": "SET_GESTURE_MODE",
+      "params": {"mode": mode, "active": active},
+    });
   }
 
   void _showExpressionsDialog() {
@@ -94,7 +128,12 @@ class _RemoteControlScreenState extends State<RemoteControlScreen> {
           _iconButton(Icons.whatshot, "mad", Colors.red),
           _iconButton(Icons.edit, "custom", Colors.grey),
         ]),
-        actions: [TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Close'))],
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Close'),
+          ),
+        ],
       ),
     );
   }
@@ -110,11 +149,16 @@ class _RemoteControlScreenState extends State<RemoteControlScreen> {
           _soundButton(Icons.warning, 3),
           _soundButton(Icons.mic, 0),
         ]),
-        actions: [TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Close'))],
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Close'),
+          ),
+        ],
       ),
     );
   }
-  
+
   void _showModesDialog() {
     showDialog(
       context: context,
@@ -127,26 +171,58 @@ class _RemoteControlScreenState extends State<RemoteControlScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   _buildControlCard('Line Follower', [
-                    ElevatedButton(child: const Text("Start/Stop"), onPressed: () => _sendCommand({"command": "SET_AUTONOMOUS_STATE", "params": {"mode": "line_follower", "active": true}})),
+                    ElevatedButton(
+                      child: const Text("Start/Stop"),
+                      onPressed: () => _sendCommand({
+                        "command": "SET_AUTONOMOUS_STATE",
+                        "params": {"mode": "line_follower", "active": true},
+                      }),
+                    ),
                     const SizedBox(width: 10),
-                    ElevatedButton(child: const Text("Calibrate"), onPressed: () => _sendCommand({"command": "CALIBRATE_SENSORS", "params": {}})),
+                    ElevatedButton(
+                      child: const Text("Calibrate"),
+                      onPressed: () => _sendCommand({
+                        "command": "CALIBRATE_SENSORS",
+                        "params": {},
+                      }),
+                    ),
                   ]),
                   const SizedBox(height: 20),
                   _buildControlCard('Wonder Pack Gestures', [
-                    _gestureSwitch("Gripper", "gripper", _gestureGripper, setDialogState),
-                    _gestureSwitch("Sketcher", "sketcher", _gestureSketcher, setDialogState),
-                    _gestureSwitch("Launcher", "launcher", _gestureLauncher, setDialogState),
-                  ])
+                    _gestureSwitch(
+                      "Gripper",
+                      "gripper",
+                      _gestureGripper,
+                      setDialogState,
+                    ),
+                    _gestureSwitch(
+                      "Sketcher",
+                      "sketcher",
+                      _gestureSketcher,
+                      setDialogState,
+                    ),
+                    _gestureSwitch(
+                      "Launcher",
+                      "launcher",
+                      _gestureLauncher,
+                      setDialogState,
+                    ),
+                  ]),
                 ],
               ),
             ),
-            actions: [TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Close'))],
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Close'),
+              ),
+            ],
           );
         },
       ),
     );
   }
-  
+
   void _showColorPicker() {
     showDialog(
       context: context,
@@ -163,7 +239,15 @@ class _RemoteControlScreenState extends State<RemoteControlScreen> {
             child: const Text('Set Color'),
             onPressed: () {
               // ignore: deprecated_member_use
-              _sendCommand({ "command": "SET_LED_COLOR", "params": {"led_id": "all", "r": _currentLedColor.red, "g": _currentLedColor.green, "b": _currentLedColor.blue}});
+              _sendCommand({
+                "command": "SET_LED_COLOR",
+                "params": {
+                  "led_id": "all",
+                  "r": _currentLedColor.red,
+                  "g": _currentLedColor.green,
+                  "b": _currentLedColor.blue,
+                },
+              });
               Navigator.of(context).pop();
             },
           ),
@@ -172,18 +256,11 @@ class _RemoteControlScreenState extends State<RemoteControlScreen> {
     );
   }
 
-
   @override
   Widget build(BuildContext context) {
-    final btState = context.watch<BluetoothService>().connectionState;
-    if (btState != BluetoothConnectionState.connected) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          Navigator.of(context).popUntil((route) => route.isFirst);
-        }
-      });
-      return const Scaffold(body: Center(child: Text("Disconnecting...")));
-    }
+    final btService = context.watch<BluetoothService>();
+    final btState = btService.connectionState;
+    final isConnected = btState == BluetoothConnectionState.connected;
 
     return Scaffold(
       body: SafeArea(
@@ -191,53 +268,100 @@ class _RemoteControlScreenState extends State<RemoteControlScreen> {
           children: [
             Column(
               children: [
-                const Spacer(flex: 2), 
-                
+                const Spacer(flex: 2),
+
                 Padding(
                   padding: const EdgeInsets.all(32.0),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      _buildJoystick("Drive", (details) => setState(() { _driveX = details.x; _driveY = details.y; }), () {
-                        setState(() { _driveX = 0; _driveY = 0; });
-                        _sendCommand({"command": "DRIVE_DIRECT", "params": {"left_speed": 0, "right_speed": 0}});
-                      }),
+                      _buildJoystick(
+                        "Drive",
+                        (details) => setState(() {
+                          _driveX = details.x;
+                          _driveY = details.y;
+                        }),
+                        () {
+                          setState(() {
+                            _driveX = 0;
+                            _driveY = 0;
+                          });
+                          _sendCommand({
+                            "command": "DRIVE_DIRECT",
+                            "params": {"left_speed": 0, "right_speed": 0},
+                          });
+                        },
+                      ),
 
                       Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           ElevatedButton.icon(
-                            icon: Icon(_isGripperOpen ? Icons.keyboard_arrow_down : Icons.keyboard_arrow_up),
-                            label: Text(_isGripperOpen ? "Close Gripper" : "Open Gripper"),
+                            icon: Icon(
+                              _isGripperOpen
+                                  ? Icons.keyboard_arrow_down
+                                  : Icons.keyboard_arrow_up,
+                            ),
+                            label: Text(
+                              _isGripperOpen ? "Close Gripper" : "Open Gripper",
+                            ),
                             onPressed: _toggleGripper,
-                            style: ElevatedButton.styleFrom(minimumSize: const Size(180, 50)),
+                            style: ElevatedButton.styleFrom(
+                              minimumSize: const Size(180, 50),
+                            ),
                           ),
                           const SizedBox(height: 24),
-                          _buildFlyoutButton(Icons.sentiment_very_satisfied, "Expressions", _showExpressionsDialog),
+                          _buildFlyoutButton(
+                            Icons.sentiment_very_satisfied,
+                            "Expressions",
+                            _showExpressionsDialog,
+                          ),
                           const SizedBox(height: 12),
-                          _buildFlyoutButton(Icons.music_note, "Sounds", _showSoundsDialog),
+                          _buildFlyoutButton(
+                            Icons.music_note,
+                            "Sounds",
+                            _showSoundsDialog,
+                          ),
                           const SizedBox(height: 12),
-                          _buildFlyoutButton(Icons.smart_toy, "Modes", _showModesDialog),
+                          _buildFlyoutButton(
+                            Icons.smart_toy,
+                            "Modes",
+                            _showModesDialog,
+                          ),
                           const SizedBox(height: 12),
-                          _buildFlyoutButton(Icons.lightbulb, "LED Color", _showColorPicker),
+                          _buildFlyoutButton(
+                            Icons.lightbulb,
+                            "LED Color",
+                            _showColorPicker,
+                          ),
                         ],
                       ),
 
-                      _buildJoystick("Head", (details) => setState(() { _headX = details.x; _headY = details.y; }), () => setState(() { _headX = 0; _headY = 0; })),
+                      _buildJoystick(
+                        "Head",
+                        (details) => setState(() {
+                          _headX = details.x;
+                          _headY = details.y;
+                        }),
+                        () => setState(() {
+                          _headX = 0;
+                          _headY = 0;
+                        }),
+                      ),
                     ],
                   ),
                 ),
-                const Spacer(flex: 1), 
+                const Spacer(flex: 1),
               ],
             ),
-            _buildTopOverlay(),
+            _buildTopOverlay(isConnected),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildTopOverlay() {
+  Widget _buildTopOverlay(bool isConnected) {
     return Align(
       alignment: Alignment.topCenter,
       child: Padding(
@@ -245,14 +369,63 @@ class _RemoteControlScreenState extends State<RemoteControlScreen> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            IconButton(
-              icon: const Icon(Icons.logout),
-              onPressed: () => context.read<BluetoothService>().disconnect(),
-            ),
+            // Connection status and button
+            isConnected
+                ? Row(
+                    children: [
+                      const Icon(
+                        Icons.bluetooth_connected,
+                        color: Colors.green,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      const Text(
+                        'Connected',
+                        style: TextStyle(
+                          color: Colors.green,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      IconButton(
+                        icon: const Icon(Icons.logout),
+                        tooltip: 'Disconnect',
+                        onPressed: () => _bluetoothService?.disconnect(),
+                      ),
+                    ],
+                  )
+                : ElevatedButton.icon(
+                    icon: const Icon(Icons.bluetooth, size: 18),
+                    label: const Text('Connect to Robot'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.orange,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                    ),
+                    onPressed: () =>
+                        Navigator.of(context).pushNamed('/connect'),
+                  ),
+
+            // Emergency stop button
             ElevatedButton(
               onPressed: () => _sendCommand({"command": "ESTOP", "params": {}}),
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.red.shade800, padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16)),
-              child: const Text('EMERGENCY STOP', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red.shade800,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 32,
+                  vertical: 16,
+                ),
+              ),
+              child: const Text(
+                'EMERGENCY STOP',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
             ),
             const SizedBox(width: 48),
           ],
@@ -261,7 +434,11 @@ class _RemoteControlScreenState extends State<RemoteControlScreen> {
     );
   }
 
-  Widget _buildFlyoutButton(IconData icon, String label, VoidCallback onPressed) {
+  Widget _buildFlyoutButton(
+    IconData icon,
+    String label,
+    VoidCallback onPressed,
+  ) {
     return ElevatedButton.icon(
       icon: Icon(icon),
       label: Text(label),
@@ -273,15 +450,19 @@ class _RemoteControlScreenState extends State<RemoteControlScreen> {
     );
   }
 
-  Widget _buildJoystick(String label, void Function(StickDragDetails) listener, VoidCallback onStickDragEnd) {
+  Widget _buildJoystick(
+    String label,
+    void Function(StickDragDetails) listener,
+    VoidCallback onStickDragEnd,
+  ) {
     return Column(
       children: [
-        Text(label, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 10),
-        Joystick(
-          listener: listener,
-          onStickDragEnd: onStickDragEnd,
+        Text(
+          label,
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
+        const SizedBox(height: 10),
+        Joystick(listener: listener, onStickDragEnd: onStickDragEnd),
       ],
     );
   }
@@ -297,10 +478,21 @@ class _RemoteControlScreenState extends State<RemoteControlScreen> {
         mainAxisSize: MainAxisSize.min,
         children: [
           if (title != null) ...[
-            Text(title, style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey.shade400)),
+            Text(
+              title,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.grey.shade400,
+              ),
+            ),
             const SizedBox(height: 8),
           ],
-          Wrap(alignment: WrapAlignment.center, spacing: 10, runSpacing: 10, children: children),
+          Wrap(
+            alignment: WrapAlignment.center,
+            spacing: 10,
+            runSpacing: 10,
+            children: children,
+          ),
         ],
       ),
     );
@@ -309,9 +501,16 @@ class _RemoteControlScreenState extends State<RemoteControlScreen> {
   Widget _iconButton(IconData icon, String iconName, Color color) {
     return ElevatedButton(
       onPressed: () {
-        _sendCommand({"command": "DISPLAY_ICON", "params": {"icon_name": iconName}});
+        _sendCommand({
+          "command": "DISPLAY_ICON",
+          "params": {"icon_name": iconName},
+        });
       },
-      style: ElevatedButton.styleFrom(backgroundColor: color, shape: const CircleBorder(), padding: const EdgeInsets.all(12)),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: color,
+        shape: const CircleBorder(),
+        padding: const EdgeInsets.all(12),
+      ),
       child: Icon(icon, size: 24),
     );
   }
@@ -319,14 +518,25 @@ class _RemoteControlScreenState extends State<RemoteControlScreen> {
   Widget _soundButton(IconData icon, int soundId) {
     return ElevatedButton(
       onPressed: () {
-        _sendCommand({"command": "PLAY_INTERNAL_SOUND", "params": {"sound_id": soundId}});
+        _sendCommand({
+          "command": "PLAY_INTERNAL_SOUND",
+          "params": {"sound_id": soundId},
+        });
       },
-      style: ElevatedButton.styleFrom(shape: const CircleBorder(), padding: const EdgeInsets.all(12)),
+      style: ElevatedButton.styleFrom(
+        shape: const CircleBorder(),
+        padding: const EdgeInsets.all(12),
+      ),
       child: Icon(icon, size: 24),
     );
   }
 
-  Widget _gestureSwitch(String label, String mode, bool value, void Function(void Function()) setDialogState) {
+  Widget _gestureSwitch(
+    String label,
+    String mode,
+    bool value,
+    void Function(void Function()) setDialogState,
+  ) {
     return Column(
       children: [
         Text(label),
@@ -337,7 +547,7 @@ class _RemoteControlScreenState extends State<RemoteControlScreen> {
             setDialogState(() {});
           },
           activeThumbColor: Colors.deepPurpleAccent,
-        )
+        ),
       ],
     );
   }

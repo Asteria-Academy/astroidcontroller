@@ -25,8 +25,8 @@ class MyApp extends StatelessWidget {
           ),
         ),
       ),
-      // Start at the connection screen
-      initialRoute: AppRoutes.connect,
+      initialRoute:
+          AppRoutes.remoteControl, // Start directly on the control screen
       onGenerateRoute: onGenerateRoute,
     );
   }
