@@ -26,7 +26,7 @@ class MyApp extends StatelessWidget {
         ),
       ),
       initialRoute:
-          AppRoutes.remoteControl, // Start directly on the control screen
+          AppRoutes.splash, // Start with splash screen
       onGenerateRoute: onGenerateRoute,
     );
   }
