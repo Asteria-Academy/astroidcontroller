@@ -112,7 +112,7 @@ class _SplashGateState extends State<SplashGate> with TickerProviderStateMixin {
                                     boxShadow: [
                                       BoxShadow(
                                         color: Colors.pinkAccent.withOpacity(
-                                          0.2,
+                                          0.1,
                                         ),
                                         blurRadius: 28,
                                         spreadRadius: 6,

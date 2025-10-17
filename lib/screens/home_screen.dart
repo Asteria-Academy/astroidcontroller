@@ -1,6 +1,7 @@
 // lib/screens/home_screen.dart
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../router/app_router.dart';
 import '../services/bluetooth_service.dart';
 
@@ -42,7 +43,7 @@ class _HomeScreenState extends State<HomeScreen> {
           final h = c.maxHeight;
 
           // Skala responsif (only for the main panel now)
-          final panelW = math.min(w * 0.78, 640.0);
+          final panelW = math.min(w * 0.78, 500.0);
           final panelH = math.min(h * 0.56, 460.0);
 
           final ctaW = math.min(w * 0.22, 320.0);
@@ -114,17 +115,20 @@ class _GalaxyPanel extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(height * 0.08),
         gradient: const LinearGradient(
-          colors: [Color(0x66122A4D), Color(0x660F1D3C)],
+          colors: [
+            Color.fromARGB(44, 89, 0, 70),
+            Color.fromARGB(57, 79, 0, 62),
+          ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         border: Border.all(
-          color: const Color.fromARGB(102, 115, 240, 255),
-          width: 2,
+          color: const Color.fromARGB(255, 255, 116, 225),
+          width: 4,
         ),
         boxShadow: const [
           BoxShadow(
-            color: Color.fromARGB(64, 106, 232, 255),
+            color: Color.fromARGB(129, 255, 9, 202),
             blurRadius: 32,
             spreadRadius: 4,
           ),
@@ -215,6 +219,9 @@ class _GalaxyPanel extends StatelessWidget {
                     gradient: const LinearGradient(
                       colors: [Color(0xFF25CBE9), Color(0xFF1B8FB0)],
                     ),
+                    iconColor: const Color(0xFFE1FBFF),
+                    borderColor: const Color(0xFF0A587A),
+                    shadowColor: const Color(0xFF0CA6C4),
                   ),
                 if (isConnected) ...[
                   _buildCTAButton(
@@ -226,6 +233,9 @@ class _GalaxyPanel extends StatelessWidget {
                     gradient: const LinearGradient(
                       colors: [Color(0xFF4CAF50), Color(0xFF388E3C)],
                     ),
+                    iconColor: const Color(0xFFE2FFEA),
+                    borderColor: const Color(0xFF2B6C34),
+                    shadowColor: const Color(0xFF2F8E3B),
                   ),
                   SizedBox(width: ctaWidth * 0.1),
                   _buildCTAButton(
@@ -237,6 +247,9 @@ class _GalaxyPanel extends StatelessWidget {
                     gradient: const LinearGradient(
                       colors: [Color(0xFFFF5252), Color(0xFFD32F2F)],
                     ),
+                    iconColor: const Color(0xFFFFE5E5),
+                    borderColor: const Color(0xFF821919),
+                    shadowColor: const Color(0xFFB62424),
                   ),
                 ],
               ],
@@ -253,43 +266,81 @@ class _GalaxyPanel extends StatelessWidget {
     required double width,
     required double height,
     required VoidCallback onTap,
-    required Gradient gradient,
+    required LinearGradient gradient,
+    required Color iconColor,
+    required Color borderColor,
+    required Color shadowColor,
   }) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(height * 0.25),
-        child: Container(
-          width: width,
-          height: height,
-          decoration: BoxDecoration(
-            gradient: gradient,
-            borderRadius: BorderRadius.circular(height * 0.25),
-            boxShadow: [
-              BoxShadow(
-                color: const Color.fromARGB(77, 0, 0, 0),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
+    final radius = BorderRadius.circular(height * 0.5);
+    final textStyle = GoogleFonts.titanOne(
+      fontSize: height * 0.4,
+      letterSpacing: 0.2,
+      color: const Color.fromARGB(255, 255, 255, 255),
+    );
+
+    return InkWell(
+      borderRadius: radius,
+      onTap: onTap,
+      child: Container(
+        width: width,
+        height: height,
+        decoration: BoxDecoration(
+          gradient: gradient,
+          borderRadius: radius,
+          border: Border.all(color: borderColor, width: height * 0.06),
+          boxShadow: [
+            BoxShadow(
+              color: Color.fromARGB(
+                140,
+                shadowColor.red,
+                shadowColor.green,
+                shadowColor.blue,
               ),
-            ],
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, color: Colors.white, size: height * 0.38),
-              SizedBox(width: width * 0.05),
-              Text(
-                label,
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: height * 0.32,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 1.2,
-                ),
+              blurRadius: 24,
+              spreadRadius: 2,
+              offset: const Offset(0, 10),
+            ),
+          ],
+        ),
+        padding: EdgeInsets.symmetric(horizontal: height * 0.36),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Stack(
+              alignment: Alignment.center,
+              children: [
+                Icon(icon, size: height * 0.45, color: Colors.black),
+                Icon(icon, size: height * 0.42, color: iconColor),
+              ],
+            ),
+            SizedBox(width: height * 0.24),
+            Flexible(
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                    style: textStyle.copyWith(
+                      foreground: Paint()
+                        ..style = PaintingStyle.stroke
+                        ..strokeWidth = math.max(1.0, height * 0.06)
+                        ..color = const Color.fromARGB(129, 0, 0, 0),
+                    ),
+                  ),
+                  Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                    style: textStyle,
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
