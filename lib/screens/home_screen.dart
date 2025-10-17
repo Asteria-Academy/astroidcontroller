@@ -43,8 +43,9 @@ class _HomeScreenState extends State<HomeScreen> {
           final h = c.maxHeight;
 
           // Skala responsif (only for the main panel now)
-          // final isConnected = _btService.isConnected;
-          final isConnected = true;
+          final isConnected = _btService.isConnected;
+          // just for testing
+          // final isConnected = true;
           final deviceName =
               _btService.connectedDevice?.platformName ?? "Unknown";
           final panelH = math.min(h * 0.56, 460.0);
