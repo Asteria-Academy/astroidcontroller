@@ -91,36 +91,75 @@ class _SplashGateState extends State<SplashGate> with TickerProviderStateMixin {
                   children: [
                     // 2) Title (mascot image layered above text logo)
                     Align(
-                      alignment: const Alignment(0, -0.45),
+                      alignment: const Alignment(0, -0.5),
                       child: SizedBox(
                         width: titleW,
                         height: titleH,
                         child: Stack(
                           clipBehavior: Clip.none,
                           children: [
-                            // Mascot image - BEHIND
+                            // Mascot image - BEHIND (with subtle pink glow)
                             Positioned(
                               top: titleH * -0.15,
                               left: titleW / 3.5,
                               child: SizedBox(
                                 width: titleW / 2.5,
                                 height: titleH,
-                                child: Image.asset(
-                                  'assets/brand/mascotnobg.png',
-                                  fit: BoxFit.contain,
+                                child: Container(
+                                  // transparent so image shows, but provide glow via shadow
+                                  decoration: BoxDecoration(
+                                    color: Colors.transparent,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.pinkAccent.withOpacity(
+                                          0.2,
+                                        ),
+                                        blurRadius: 28,
+                                        spreadRadius: 6,
+                                        offset: Offset(0, 0),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Image.asset(
+                                    'assets/brand/mascotnobg.png',
+                                    fit: BoxFit.contain,
+                                  ),
                                 ),
                               ),
                             ),
-                            // Logo text at mascot's feet - IN FRONT
+                            // Logo text at mascot's feet - IN FRONT (with shadow + pink glow)
                             Positioned(
                               bottom: 0,
                               left: 0,
                               right: 0,
                               child: SizedBox(
                                 height: titleH * 0.45,
-                                child: Image.asset(
-                                  'assets/brand/logo_crop.png',
-                                  fit: BoxFit.contain,
+                                child: Center(
+                                  child: Container(
+                                    // transparent color so shadow & glow are visible
+                                    decoration: BoxDecoration(
+                                      color: Colors.transparent,
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withOpacity(0.45),
+                                          blurRadius: 12,
+                                          offset: Offset(0, 6),
+                                        ),
+                                        BoxShadow(
+                                          color: Colors.pinkAccent.withOpacity(
+                                            0.55,
+                                          ),
+                                          blurRadius: 20,
+                                          spreadRadius: 4,
+                                          offset: Offset(0, 0),
+                                        ),
+                                      ],
+                                    ),
+                                    child: Image.asset(
+                                      'assets/brand/logo_crop.png',
+                                      fit: BoxFit.contain,
+                                    ),
+                                  ),
                                 ),
                               ),
                             ),
