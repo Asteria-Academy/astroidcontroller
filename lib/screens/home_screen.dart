@@ -116,8 +116,8 @@ class _GalaxyPanel extends StatelessWidget {
         borderRadius: BorderRadius.circular(height * 0.08),
         gradient: const LinearGradient(
           colors: [
-            Color.fromARGB(44, 89, 0, 70),
-            Color.fromARGB(57, 79, 0, 62),
+            Color.fromARGB(48, 81, 1, 64),
+            Color.fromARGB(66, 79, 0, 62),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -128,9 +128,9 @@ class _GalaxyPanel extends StatelessWidget {
         ),
         boxShadow: const [
           BoxShadow(
-            color: Color.fromARGB(129, 255, 9, 202),
-            blurRadius: 32,
-            spreadRadius: 4,
+            color: Color.fromARGB(39, 255, 9, 202),
+            blurRadius: 12,
+            spreadRadius: 12,
           ),
         ],
       ),
@@ -217,13 +217,17 @@ class _GalaxyPanel extends StatelessWidget {
                     height: ctaHeight,
                     onTap: onConnectTap,
                     gradient: const LinearGradient(
-                      colors: [Color(0xFF25CBE9), Color(0xFF1B8FB0)],
+                      colors: [
+                        Color.fromARGB(255, 97, 153, 237),
+                        Color.fromARGB(255, 74, 93, 217),
+                      ],
                     ),
                     iconColor: const Color(0xFFE1FBFF),
-                    borderColor: const Color(0xFF0A587A),
+                    borderColor: const Color.fromARGB(255, 255, 255, 255),
                     shadowColor: const Color(0xFF0CA6C4),
                   ),
                 if (isConnected) ...[
+                  SizedBox(width: ctaWidth * 0.1),
                   _buildCTAButton(
                     label: "REMOTE",
                     icon: Icons.gamepad,
@@ -231,11 +235,14 @@ class _GalaxyPanel extends StatelessWidget {
                     height: ctaHeight,
                     onTap: onRemoteTap,
                     gradient: const LinearGradient(
-                      colors: [Color(0xFF4CAF50), Color(0xFF388E3C)],
+                      colors: [
+                        Color.fromARGB(255, 160, 88, 219),
+                        Color.fromARGB(255, 104, 48, 149),
+                      ],
                     ),
-                    iconColor: const Color(0xFFE2FFEA),
-                    borderColor: const Color(0xFF2B6C34),
-                    shadowColor: const Color(0xFF2F8E3B),
+                    iconColor: const Color.fromARGB(255, 255, 255, 255),
+                    borderColor: const Color.fromARGB(255, 195, 122, 255),
+                    shadowColor: const Color.fromARGB(255, 160, 88, 219),
                   ),
                   SizedBox(width: ctaWidth * 0.1),
                   _buildCTAButton(
