@@ -43,11 +43,33 @@ class _HomeScreenState extends State<HomeScreen> {
           final h = c.maxHeight;
 
           // Skala responsif (only for the main panel now)
-          final panelW = math.min(w * 0.78, 500.0);
+          // final isConnected = _btService.isConnected;
+          final isConnected = true;
+          final deviceName =
+              _btService.connectedDevice?.platformName ?? "Unknown";
           final panelH = math.min(h * 0.56, 460.0);
 
-          final ctaW = math.min(w * 0.22, 320.0);
+          final panelMaxWidth = math.min(w * 0.78, 500.0);
+          final panelMinWidthBase = math.min(w * 0.55, 200.0);
+          final panelW = isConnected
+              ? panelMaxWidth
+              : math.min(panelMaxWidth, math.max(panelMinWidthBase, 320.0));
+
           final ctaH = math.min(h * 0.10, 64.0);
+          final ctaCount = isConnected ? 2 : 1;
+          final horizontalPadding = panelH * 0.08 * 2;
+          final availableCTAWidth = math.max(panelW - horizontalPadding, 0.0);
+          final rawSpacing = ctaCount > 1 ? availableCTAWidth * 0.03 : 0.0;
+          final ctaSpacing = ctaCount > 1
+              ? math.min(math.max(rawSpacing, 12.0), availableCTAWidth * 0.3)
+              : 0.0;
+          debugPrint('choosed ctaSpacing: $ctaSpacing');
+
+          final totalSpacing = (ctaCount - 1) * ctaSpacing;
+          final ctaBaseWidth = ctaCount > 0
+              ? math.max(availableCTAWidth - totalSpacing, 0.0) / ctaCount
+              : 0.0;
+          final ctaW = math.min(ctaBaseWidth, 200.0);
 
           return Stack(
             children: [
@@ -64,9 +86,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   height: panelH,
                   ctaWidth: ctaW,
                   ctaHeight: ctaH,
-                  isConnected: _btService.isConnected,
-                  deviceName:
-                      _btService.connectedDevice?.platformName ?? "Unknown",
+                  ctaSpacing: ctaSpacing,
+                  isConnected: isConnected,
+                  deviceName: deviceName,
                   onConnectTap: () {
                     Navigator.pushNamed(context, AppRoutes.connect);
                   },
@@ -89,6 +111,7 @@ class _GalaxyPanel extends StatelessWidget {
     required this.height,
     required this.ctaWidth,
     required this.ctaHeight,
+    required this.ctaSpacing,
     required this.isConnected,
     required this.deviceName,
     required this.onConnectTap,
@@ -99,6 +122,7 @@ class _GalaxyPanel extends StatelessWidget {
   final double height;
   final double ctaWidth;
   final double ctaHeight;
+  final double ctaSpacing;
   final bool isConnected;
   final String deviceName;
   final VoidCallback onConnectTap;
@@ -116,8 +140,8 @@ class _GalaxyPanel extends StatelessWidget {
         borderRadius: BorderRadius.circular(height * 0.08),
         gradient: const LinearGradient(
           colors: [
-            Color.fromARGB(48, 81, 1, 64),
-            Color.fromARGB(66, 79, 0, 62),
+            Color.fromARGB(111, 135, 11, 108),
+            Color.fromARGB(172, 136, 8, 108),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -227,7 +251,6 @@ class _GalaxyPanel extends StatelessWidget {
                     shadowColor: const Color(0xFF0CA6C4),
                   ),
                 if (isConnected) ...[
-                  SizedBox(width: ctaWidth * 0.1),
                   _buildCTAButton(
                     label: "REMOTE",
                     icon: Icons.gamepad,
@@ -241,10 +264,10 @@ class _GalaxyPanel extends StatelessWidget {
                       ],
                     ),
                     iconColor: const Color.fromARGB(255, 255, 255, 255),
-                    borderColor: const Color.fromARGB(255, 195, 122, 255),
+                    borderColor: const Color.fromARGB(255, 255, 255, 255),
                     shadowColor: const Color.fromARGB(255, 160, 88, 219),
                   ),
-                  SizedBox(width: ctaWidth * 0.1),
+                  SizedBox(width: ctaSpacing),
                   _buildCTAButton(
                     label: "DISCONNECT",
                     icon: Icons.bluetooth_disabled,
@@ -255,8 +278,8 @@ class _GalaxyPanel extends StatelessWidget {
                       colors: [Color(0xFFFF5252), Color(0xFFD32F2F)],
                     ),
                     iconColor: const Color(0xFFFFE5E5),
-                    borderColor: const Color(0xFF821919),
-                    shadowColor: const Color(0xFFB62424),
+                    borderColor: const Color.fromARGB(255, 255, 255, 255),
+                    shadowColor: const Color.fromARGB(255, 255, 43, 43),
                   ),
                 ],
               ],
