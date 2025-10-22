@@ -98,7 +98,7 @@ class _SplashGateState extends State<SplashGate> with TickerProviderStateMixin {
                         child: Stack(
                           clipBehavior: Clip.none,
                           children: [
-                            // Mascot image - BEHIND (with subtle pink glow)
+                            // Mascot image (with subtle pink glow)
                             Positioned(
                               top: titleH * -0.15,
                               left: titleW / 3.5,
@@ -106,14 +106,11 @@ class _SplashGateState extends State<SplashGate> with TickerProviderStateMixin {
                                 width: titleW / 2.5,
                                 height: titleH,
                                 child: Container(
-                                  // transparent so image shows, but provide glow via shadow
                                   decoration: BoxDecoration(
                                     color: Colors.transparent,
                                     boxShadow: [
                                       BoxShadow(
-                                        color: Colors.pinkAccent.withOpacity(
-                                          0.1,
-                                        ),
+                                        color: const Color.fromARGB(26, 255, 64, 129),
                                         blurRadius: 28,
                                         spreadRadius: 6,
                                         offset: Offset(0, 0),
@@ -136,19 +133,16 @@ class _SplashGateState extends State<SplashGate> with TickerProviderStateMixin {
                                 height: titleH * 0.45,
                                 child: Center(
                                   child: Container(
-                                    // transparent color so shadow & glow are visible
                                     decoration: BoxDecoration(
                                       color: Colors.transparent,
                                       boxShadow: [
                                         BoxShadow(
-                                          color: Colors.black.withOpacity(0.45),
+                                          color: const Color.fromARGB(115, 0, 0, 0),
                                           blurRadius: 12,
                                           offset: Offset(0, 6),
                                         ),
                                         BoxShadow(
-                                          color: Colors.pinkAccent.withOpacity(
-                                            0.55,
-                                          ),
+                                          color: const Color.fromARGB(140, 255, 64, 129),
                                           blurRadius: 20,
                                           spreadRadius: 4,
                                           offset: Offset(0, 0),

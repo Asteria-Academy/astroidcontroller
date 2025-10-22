@@ -1,12 +1,13 @@
-// lib/screens/remote_control_screen.dart
-
+// ignore_for_file: deprecated_member_use
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:flutter_joystick/flutter_joystick.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../services/bluetooth_service.dart';
+import '../widgets/donut_led_picker.dart';
 
 class RemoteControlScreen extends StatefulWidget {
   const RemoteControlScreen({super.key});
@@ -16,125 +17,75 @@ class RemoteControlScreen extends StatefulWidget {
 }
 
 class _RemoteControlScreenState extends State<RemoteControlScreen> {
-  Timer? _driveTimer;
-  Timer? _headTimer;
-  BluetoothService? _bluetoothService;
+  Timer? _driveTimer, _headTimer;
+  double _lastDriveX = 0, _lastDriveY = 0;
+  double _lastHeadX = 0, _lastHeadY = 0;
 
   bool _isGripperOpen = true;
-  Color _currentLedColor = Colors.deepPurpleAccent;
   double _driveX = 0, _driveY = 0;
   double _headX = 0, _headY = 0;
-  bool _gestureGripper = false;
-  bool _gestureSketcher = false;
-  bool _gestureLauncher = false;
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    try {
-      _bluetoothService ??= context.read<BluetoothService>();
-    } catch (e) {
-      debugPrint("BluetoothService not available: $e");
-    }
-  }
+  bool _gestureGripper = false, _gestureSketcher = false, _gestureLauncher = false;
+  List<Color> _ledColors = List.generate(12, (_) => Colors.grey.shade800);
+  Color _currentColor = Colors.deepPurpleAccent;
 
   @override
   void initState() {
     super.initState();
-    _driveTimer = Timer.periodic(
-      const Duration(milliseconds: 100),
-      (_) => _sendDriveCommand(),
-    );
-    _headTimer = Timer.periodic(
-      const Duration(milliseconds: 100),
-      (_) => _sendHeadCommand(),
-    );
+    _driveTimer = Timer.periodic(const Duration(milliseconds: 100), (_) => _sendDriveCommand());
+    _headTimer = Timer.periodic(const Duration(milliseconds: 100), (_) => _sendHeadCommand());
+    context.read<BluetoothService>().sendCommand({"command": "GET_BATTERY_STATUS", "params": {}});
   }
 
   @override
   void dispose() {
     _driveTimer?.cancel();
     _headTimer?.cancel();
-    _bluetoothService?.sendCommand({
-      "command": "DRIVE_DIRECT",
-      "params": {"left_speed": 0, "right_speed": 0},
-    });
+    context.read<BluetoothService>().sendCommand({"command": "DRIVE_DIRECT", "params": {"left_speed": 0, "right_speed": 0}});
     super.dispose();
+  }
+
+  void _sendCommand(Map<String, dynamic> command) {
+    if (mounted) {
+      context.read<BluetoothService>().sendCommand(command);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final btService = context.watch<BluetoothService>();
-    final isConnected =
-        btService.connectionState == BluetoothConnectionState.connected;
-    final deviceName =
-        btService.connectedDevice?.platformName ?? 'Not Connected';
-    final batteryLevel = btService.batteryLevel;
+    if (!btService.isConnected) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && Navigator.of(context).canPop()) {
+          Navigator.of(context).popUntil((route) => route.isFirst);
+        }
+      });
+      return const Scaffold(backgroundColor: Color(0xFF0B1433), body: Center(child: Text("Disconnecting...")));
+    }
 
     return Scaffold(
       backgroundColor: const Color(0xFF0B1433),
       body: Stack(
         children: [
-          Positioned.fill(
-            child: Image.asset('assets/splash/bg.png', fit: BoxFit.cover),
-          ),
+          Positioned.fill(child: Image.asset('assets/splash/bg.png', fit: BoxFit.cover)),
           SafeArea(
             child: Column(
               children: [
-                // 1. Top App Bar
                 _TopAppBar(
-                  isConnected: isConnected,
-                  deviceName: deviceName,
-                  batteryLevel: batteryLevel,
+                  isConnected: btService.isConnected,
+                  deviceName: btService.connectedDevice?.platformName ?? 'Not Connected',
+                  batteryLevel: btService.batteryLevel,
                   onBackPressed: () => Navigator.of(context).pop(),
-                  onEstopPressed: () =>
-                      _sendCommand({"command": "ESTOP", "params": {}}),
+                  onEstopPressed: () => _sendCommand({"command": "ESTOP", "params": {}}),
                 ),
-
-                // 2. Main Content Area (Joysticks and Buttons)
                 Expanded(
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16.0,
-                      vertical: 8.0,
-                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
-                        // Left Joystick
-                        _buildJoystick(
-                          "Drive",
-                          (details) => setState(() {
-                            _driveX = details.x;
-                            _driveY = details.y;
-                          }),
-                          () {
-                            setState(() {
-                              _driveX = 0;
-                              _driveY = 0;
-                            });
-                            _sendCommand({
-                              "command": "DRIVE_DIRECT",
-                              "params": {"left_speed": 0, "right_speed": 0},
-                            });
-                          },
-                        ),
-
-                        // Center Buttons
+                        _buildJoystick("Drive", isDriveJoystick: true),
                         _buildCenterControlPanel(),
-
-                        // Right Joystick
-                        _buildJoystick(
-                          "Head",
-                          (details) => setState(() {
-                            _headX = details.x;
-                            _headY = details.y;
-                          }),
-                          () => setState(() {
-                            _headX = 0;
-                            _headY = 0;
-                          }),
-                        ),
+                        _buildJoystick("Head", isDriveJoystick: false),
                       ],
                     ),
                   ),
@@ -147,7 +98,6 @@ class _RemoteControlScreenState extends State<RemoteControlScreen> {
     );
   }
 
-  // NEW: Widget for the central column of buttons for better organization
   Widget _buildCenterControlPanel() {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -173,18 +123,172 @@ class _RemoteControlScreenState extends State<RemoteControlScreen> {
         const SizedBox(height: 12),
         _buildFlyoutButton(Icons.smart_toy, "Modes", _showModesDialog),
         const SizedBox(height: 12),
-        _buildFlyoutButton(Icons.lightbulb, "LED Color", _showColorPicker),
+        _buildFlyoutButton(Icons.lightbulb, "LED Color", _showLedControlDialog),
       ],
     );
   }
 
-  // --- All other helper methods (_buildJoystick, _showColorPicker, etc.) remain unchanged ---
-  // --- Just copy them from your original file below this line ---
+  Widget _buildJoystick(String label, {required bool isDriveJoystick}) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(label, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white70)),
+        const SizedBox(height: 16),
+        
+        Listener(
+          onPointerDown: (_) => HapticFeedback.lightImpact(), // <-- UPDATED
+          onPointerUp: (_) => HapticFeedback.selectionClick(), 
+          child: Joystick(
+            listener: (details) {
+              if (isDriveJoystick) {
+                if ((details.y.abs() > 0.1 && _lastDriveY.abs() <= 0.1) || (details.x.abs() > 0.1 && _lastDriveX.abs() <= 0.1)) {
+                  HapticFeedback.selectionClick();
+                }
+                _lastDriveX = details.x; _lastDriveY = details.y;
+                setState(() { _driveX = details.x; _driveY = details.y; });
+              } else {
+                if ((details.y.abs() > 0.1 && _lastHeadY.abs() <= 0.1) || (details.x.abs() > 0.1 && _lastHeadX.abs() <= 0.1)) {
+                  HapticFeedback.selectionClick();
+                }
+                _lastHeadX = details.x; _lastHeadY = details.y;
+                setState(() { _headX = details.x; _headY = details.y; });
+              }
+            },
+            onStickDragStart: () {
+              HapticFeedback.lightImpact();
+            },
+            onStickDragEnd: () {
+              HapticFeedback.selectionClick();
+              if (isDriveJoystick) {
+                setState(() { _driveX = 0; _driveY = 0; });
+                _sendCommand({"command": "DRIVE_DIRECT", "params": {"left_speed": 0, "right_speed": 0}});
+              } else {
+                setState(() { _headX = 0; _headY = 0; });
+              }
+            },
+            base: Container(width: 160, height: 160, decoration: BoxDecoration(shape: BoxShape.circle, gradient: const LinearGradient(colors: [Color(0xFF1F3A66), Color(0xFF101D38)]), border: Border.all(color: const Color(0x996EE7FF), width: 2))),
+            stick: const Icon(Icons.control_camera, size: 50, color: Color(0xFF6EE7FF)),
+          ),
+        ),
+      ],
+    );
+  }
 
-  // NOTE: I've copied them here for your convenience.
+  Future<void> _showLedControlDialog() async {
+    // Haptic is on the button that calls this.
+    await showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          // Define our "Off" color as pure black
+          const Color offColor = Colors.black;
 
-  void _sendCommand(Map<String, dynamic> command) {
-    _bluetoothService?.sendCommand(command);
+          return AlertDialog(
+            title: const Text('LED Control'),
+            content: SizedBox(
+              width: MediaQuery.of(context).size.width * 0.7,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // --- Donut Picker on the Left ---
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text('Tap a segment', style: TextStyle(fontSize: 12)),
+                      const SizedBox(height: 10),
+                      DonutLedPicker(
+                        ledColors: _ledColors,
+                        onSegmentTapped: (index) async {
+                          await HapticFeedback.selectionClick();
+                          setDialogState(() { _ledColors[index] = _currentColor; });
+                          _sendCommand({
+                            "command": "SET_LED_COLOR",
+                            "params": {
+                              "led_id": index,
+                              "r": _currentColor == offColor ? 0 : _currentColor.red,
+                              "g": _currentColor == offColor ? 0 : _currentColor.green,
+                              "b": _currentColor == offColor ? 0 : _currentColor.blue
+                            }
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                  const SizedBox(width: 24),
+
+                  // --- Color Picker (Right) ---
+                  Expanded(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text('Select a color', style: TextStyle(fontSize: 12)),
+                        const SizedBox(height: 10),
+                        BlockPicker(
+                          pickerColor: _currentColor,
+                          onColorChanged: (color) async {
+                            await HapticFeedback.selectionClick();
+                            setDialogState(() => _currentColor = color);
+                          },
+                          itemBuilder: (color, isCurrentColor, changeColor) {
+                            return GestureDetector(
+                              onTap: changeColor,
+                              child: Container(
+                                height: 50,
+                                width: 50,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: color,
+                                  boxShadow: [
+                                    if (isCurrentColor)
+                                      BoxShadow(color: color, blurRadius: 4, spreadRadius: 2)
+                                  ],
+                                  border: Border.all(color: Colors.white, width: isCurrentColor ? 2 : 0.5)
+                                ),
+                                child: color == offColor
+                                    ? const Icon(Icons.power_settings_new, color: Colors.white54)
+                                    : null,
+                              ),
+                            );
+                          },
+                          availableColors: [
+                            offColor,
+                            Colors.red, Colors.pink, Colors.purple, Colors.deepPurple,
+                            Colors.indigo, Colors.blue, Colors.lightBlue, Colors.cyan,
+                            Colors.teal, Colors.green, Colors.lightGreen, Colors.lime,
+                            Colors.yellow, Colors.amber, Colors.orange,
+                            Colors.white,
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            actions: <Widget>[
+              ElevatedButton.icon(
+                icon: const Icon(Icons.select_all),
+                label: const Text('Set All LEDs'),
+                onPressed: () async {
+                  await HapticFeedback.lightImpact();
+                  setDialogState(() => _ledColors = List.generate(12, (_) => _currentColor));
+                  _sendCommand({
+                    "command": "SET_LED_COLOR",
+                    "params": {
+                      "led_id": "all",
+                      "r": _currentColor == offColor ? 0 : _currentColor.red,
+                      "g": _currentColor == offColor ? 0 : _currentColor.green,
+                      "b": _currentColor == offColor ? 0 : _currentColor.blue
+                    }
+                  });
+                },
+              ),
+              TextButton(child: const Text('Done'), onPressed: () => Navigator.of(context).pop()),
+            ],
+          );
+        },
+      ),
+    );
   }
 
   void _sendDriveCommand() {
@@ -203,24 +307,32 @@ class _RemoteControlScreenState extends State<RemoteControlScreen> {
     }
   }
 
+  void _toggleGripper() {
+    HapticFeedback.lightImpact();
+    setState(() => _isGripperOpen = !_isGripperOpen);
+    _sendCommand({"command": "SET_GRIPPER", "params": {"state": _isGripperOpen ? "open" : "closed"}});
+  }
+
+  Widget _buildFlyoutButton(IconData icon, String label, VoidCallback onPressed) {
+    return ElevatedButton.icon(
+      icon: Icon(icon), label: Text(label),
+      onPressed: () {
+        HapticFeedback.lightImpact();
+        onPressed();
+      },
+      style: ElevatedButton.styleFrom(minimumSize: const Size(180, 48), backgroundColor: Colors.grey.shade800, foregroundColor: Colors.white),
+    );
+  }
+
   void _sendHeadCommand() {
-    int yaw = (95 + (_headX * 75)).clamp(20, 170).toInt();
-    int pitch = (95 + (-_headY * 75)).clamp(20, 170).toInt();
+    int yaw = (90 + (_headX * 75)).clamp(75, 105).toInt();
+    int pitch = (90 + (-_headY * 75)).clamp(20, 170).toInt();
     if (_headX.abs() > 0.1 || _headY.abs() > 0.1) {
-      // Deadzone
       _sendCommand({
         "command": "SET_HEAD_POSITION",
         "params": {"pitch": pitch, "yaw": yaw},
       });
     }
-  }
-
-  void _toggleGripper() {
-    setState(() => _isGripperOpen = !_isGripperOpen);
-    _sendCommand({
-      "command": "SET_GRIPPER",
-      "params": {"state": _isGripperOpen ? "open" : "closed"},
-    });
   }
 
   void _setGestureMode(String mode, bool active) {
@@ -347,96 +459,6 @@ class _RemoteControlScreenState extends State<RemoteControlScreen> {
     );
   }
 
-  void _showColorPicker() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Set LED Color'),
-        content: SingleChildScrollView(
-          child: ColorPicker(
-            pickerColor: _currentLedColor,
-            onColorChanged: (color) => setState(() => _currentLedColor = color),
-          ),
-        ),
-        actions: <Widget>[
-          ElevatedButton(
-            child: const Text('Set Color'),
-            onPressed: () {
-              _sendCommand({
-                "command": "SET_LED_COLOR",
-                "params": {
-                  "led_id": "all",
-                  "r": _currentLedColor.red,
-                  "g": _currentLedColor.green,
-                  "b": _currentLedColor.blue,
-                },
-              });
-              Navigator.of(context).pop();
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFlyoutButton(
-    IconData icon,
-    String label,
-    VoidCallback onPressed,
-  ) {
-    return ElevatedButton.icon(
-      icon: Icon(icon),
-      label: Text(label),
-      onPressed: onPressed,
-      style: ElevatedButton.styleFrom(
-        minimumSize: const Size(180, 48),
-        backgroundColor: Colors.grey.shade800,
-        foregroundColor: Colors.white,
-      ),
-    );
-  }
-
-  Widget _buildJoystick(
-    String label,
-    void Function(StickDragDetails) listener,
-    VoidCallback onStickDragEnd,
-  ) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: Colors.white70,
-          ),
-        ),
-        const SizedBox(height: 16),
-        Joystick(
-          listener: listener,
-          onStickDragEnd: onStickDragEnd,
-          base: Container(
-            width: 160,
-            height: 160,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: const LinearGradient(
-                colors: [Color(0xFF1F3A66), Color(0xFF101D38)],
-              ),
-              border: Border.all(color: const Color(0x996EE7FF), width: 2),
-            ),
-          ),
-          stick: const Icon(
-            Icons.control_camera,
-            size: 50,
-            color: Color(0xFF6EE7FF),
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget _buildControlCard(String? title, List<Widget> children) {
     return Container(
       padding: const EdgeInsets.all(12),
@@ -523,9 +545,6 @@ class _RemoteControlScreenState extends State<RemoteControlScreen> {
   }
 }
 
-// =========================================================================
-// NEW WIDGET: The custom App Bar you requested
-// =========================================================================
 class _TopAppBar extends StatelessWidget {
   const _TopAppBar({
     required this.isConnected,
@@ -623,21 +642,21 @@ class _TopAppBar extends StatelessWidget {
     );
   }
 
-  // Helper to build the battery indicator
   Widget _buildBatteryIndicator(int? level) {
     IconData batteryIcon;
-    if (level == null)
+    if (level == null) {
       batteryIcon = Icons.battery_unknown;
-    else if (level > 90)
+    } else if (level > 90) {
       batteryIcon = Icons.battery_full;
-    else if (level > 75)
+    } else if (level > 75) {
       batteryIcon = Icons.battery_6_bar;
-    else if (level > 50)
+    } else if (level > 50) {
       batteryIcon = Icons.battery_4_bar;
-    else if (level > 25)
+    } else if (level > 25) {
       batteryIcon = Icons.battery_2_bar;
-    else
+    } else {
       batteryIcon = Icons.battery_alert;
+    }
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,

@@ -321,12 +321,7 @@ class _GalaxyPanel extends StatelessWidget {
           border: Border.all(color: borderColor, width: height * 0.06),
           boxShadow: [
             BoxShadow(
-              color: Color.fromARGB(
-                140,
-                shadowColor.red,
-                shadowColor.green,
-                shadowColor.blue,
-              ),
+              color: Color.fromARGB(140, shadowColor.red, shadowColor.green, shadowColor.blue), // ignore: deprecated_member_use
               blurRadius: 24,
               spreadRadius: 2,
               offset: const Offset(0, 10),
