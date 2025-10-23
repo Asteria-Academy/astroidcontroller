@@ -6,30 +6,38 @@ import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart' as fbp;
 
 // Standard Nordic UART Service UUIDs
-final fbp.Guid nordicUartServiceUuid = fbp.Guid("6E400001-B5A3-F393-E0A9-E50E24DCCA9E");
-final fbp.Guid nordicUartRxCharUuid = fbp.Guid("6E400002-B5A3-F393-E0A9-E50E24DCCA9E"); // App -> Robot
-final fbp.Guid nordicUartTxCharUuid = fbp.Guid("6E400003-B5A3-F393-E0A9-E50E24DCCA9E"); // Robot -> App
+final fbp.Guid nordicUartServiceUuid = fbp.Guid(
+  "6E400001-B5A3-F393-E0A9-E50E24DCCA9E",
+);
+final fbp.Guid nordicUartRxCharUuid = fbp.Guid(
+  "6E400002-B5A3-F393-E0A9-E50E24DCCA9E",
+); // App -> Robot
+final fbp.Guid nordicUartTxCharUuid = fbp.Guid(
+  "6E400003-B5A3-F393-E0A9-E50E24DCCA9E",
+); // Robot -> App
 
 enum BluetoothConnectionState {
   disconnected,
   scanning,
   connecting,
   connected,
-  connectionFailed,
 }
 
 class BluetoothService with ChangeNotifier {
   BluetoothService._privateConstructor();
-  static final BluetoothService instance = BluetoothService._privateConstructor();
+  static final BluetoothService instance =
+      BluetoothService._privateConstructor();
 
-  BluetoothConnectionState _connectionState = BluetoothConnectionState.disconnected;
+  BluetoothConnectionState _connectionState =
+      BluetoothConnectionState.disconnected;
   BluetoothConnectionState get connectionState => _connectionState;
 
-  bool get isConnected => _connectionState == BluetoothConnectionState.connected;
+  bool get isConnected =>
+      _connectionState == BluetoothConnectionState.connected;
 
   StreamSubscription? _scanResultsSubscription;
   StreamSubscription? _connectionStateSubscription;
-  
+
   Timer? _batteryRequestTimer;
 
   List<fbp.ScanResult> _scanResults = [];
@@ -40,6 +48,9 @@ class BluetoothService with ChangeNotifier {
 
   int? _batteryLevel;
   int? get batteryLevel => _batteryLevel;
+
+  String? _lastConnectionError;
+  String? get lastConnectionError => _lastConnectionError;
 
   fbp.BluetoothCharacteristic? _rxCharacteristic;
   fbp.BluetoothCharacteristic? _txCharacteristic;
@@ -74,6 +85,7 @@ class BluetoothService with ChangeNotifier {
       return;
     }
 
+    _scanResultsSubscription?.cancel();
     _scanResultsSubscription = fbp.FlutterBluePlus.scanResults.listen(
       (results) {
         _scanResults = results;
@@ -93,8 +105,8 @@ class BluetoothService with ChangeNotifier {
     });
   }
 
-  void stopScan() {
-    fbp.FlutterBluePlus.stopScan();
+  Future<void> stopScan() async {
+    await fbp.FlutterBluePlus.stopScan();
     _scanResultsSubscription?.cancel();
     if (_connectionState == BluetoothConnectionState.scanning) {
       _updateConnectionState(BluetoothConnectionState.disconnected);
@@ -102,11 +114,15 @@ class BluetoothService with ChangeNotifier {
   }
 
   Future<bool> connect(fbp.BluetoothDevice device) async {
-    if (_connectionState == BluetoothConnectionState.connecting ||
-        _connectionState == BluetoothConnectionState.connected) {
-      return false;
+    _lastConnectionError = null;
+
+    if (isConnected) {
+      if (device.remoteId == _connectedDevice?.remoteId) {
+        return true;
+      }
+      await disconnect();
     }
-    stopScan();
+
     _updateConnectionState(BluetoothConnectionState.connecting);
 
     try {
@@ -114,10 +130,20 @@ class BluetoothService with ChangeNotifier {
         timeout: const Duration(seconds: 15),
         license: fbp.License.free,
       );
+
       _connectedDevice = device;
-      await _discoverServicesAndCharacteristics(device);
+      bool success = await _discoverServicesAndCharacteristics(device);
+
+      if (!success) {
+        _lastConnectionError =
+            "Could not find required UART service/characteristics. Check if device firmware is correct.";
+        await disconnect();
+        return false;
+      }
+
       _updateConnectionState(BluetoothConnectionState.connected);
-      
+
+      await sendCommand({"command": "GET_BATTERY_STATUS", "params": {}});
       _startBatteryUpdates();
 
       _connectionStateSubscription?.cancel();
@@ -130,7 +156,28 @@ class BluetoothService with ChangeNotifier {
       return true;
     } catch (e) {
       debugPrint("Connection failed with exception: $e");
-      _updateConnectionState(BluetoothConnectionState.connectionFailed);
+
+      String errorMsg = e.toString();
+      if (errorMsg.contains('timeout')) {
+        _lastConnectionError =
+            "Connection timeout. Device may be out of range or busy.";
+      } else if (errorMsg.contains('connect')) {
+        _lastConnectionError = "Failed to establish connection. Try again.";
+      } else if (errorMsg.contains('discover')) {
+        _lastConnectionError =
+            "Service discovery failed. Device may be incompatible.";
+      } else {
+        _lastConnectionError =
+            "Connection error: ${errorMsg.length > 100 ? '${errorMsg.substring(0, 100)}...' : errorMsg}";
+      }
+
+      try {
+        if (_connectedDevice != null) {
+          await _connectedDevice!.disconnect();
+        }
+      } catch (disconnectError) {
+        debugPrint("Error during cleanup disconnect: $disconnectError");
+      }
       _cleanUpConnection();
       return false;
     }
@@ -146,47 +193,60 @@ class BluetoothService with ChangeNotifier {
   }
 
   void _cleanUpConnection() {
-    _stopBatteryUpdates(); 
-    
+    _stopBatteryUpdates();
+
     _connectedDevice = null;
     _rxCharacteristic = null;
     _txCharacteristic = null;
-    
+
     _batteryLevel = null;
-    
+
     _updateConnectionState(BluetoothConnectionState.disconnected);
   }
 
-  Future<void> _discoverServicesAndCharacteristics(fbp.BluetoothDevice device) async {
-    List<fbp.BluetoothService> services = await device.discoverServices();
-    for (var service in services) {
-      if (service.uuid == nordicUartServiceUuid) {
-        for (var char in service.characteristics) {
-          if (char.uuid == nordicUartRxCharUuid) _rxCharacteristic = char;
-          if (char.uuid == nordicUartTxCharUuid) _txCharacteristic = char;
+  Future<bool> _discoverServicesAndCharacteristics(
+    fbp.BluetoothDevice device,
+  ) async {
+    try {
+      await Future.delayed(const Duration(milliseconds: 500));
+
+      List<fbp.BluetoothService> services = await device
+          .discoverServices()
+          .timeout(const Duration(seconds: 20));
+
+      for (var service in services) {
+        if (service.uuid == nordicUartServiceUuid) {
+          for (var char in service.characteristics) {
+            if (char.uuid == nordicUartRxCharUuid) _rxCharacteristic = char;
+            if (char.uuid == nordicUartTxCharUuid) _txCharacteristic = char;
+          }
         }
       }
-    }
 
-    if (_txCharacteristic != null) {
-      await _txCharacteristic!.setNotifyValue(true);
-      _txCharacteristic!.lastValueStream.listen(_onDataReceived);
-    }
+      if (_txCharacteristic != null) {
+        await _txCharacteristic!.setNotifyValue(true);
+        _txCharacteristic!.lastValueStream.listen(_onDataReceived);
+      }
 
-    if (_rxCharacteristic == null || _txCharacteristic == null) {
-      debugPrint("Error: Could not find all required characteristics. Disconnecting.");
-      disconnect();
-      throw "UART Service characteristics not found.";
+      if (_rxCharacteristic == null || _txCharacteristic == null) {
+        debugPrint("Error: Could not find all required characteristics.");
+        return false;
+      }
+
+      return true;
+    } catch (e) {
+      debugPrint("Error during service discovery: $e");
+      return false;
     }
   }
 
   void _onDataReceived(List<int> value) {
     if (value.isEmpty) return;
-    
+
     try {
       final message = String.fromCharCodes(value);
       debugPrint("Received data from robot: $message");
-      
+
       final jsonData = jsonDecode(message) as Map<String, dynamic>;
 
       if (jsonData['status'] == 'BATTERY' && jsonData.containsKey('level')) {
@@ -204,7 +264,7 @@ class BluetoothService with ChangeNotifier {
 
   void _startBatteryUpdates() {
     _stopBatteryUpdates();
-    
+
     _batteryRequestTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
       if (isConnected) {
         _requestBatteryStatus();
@@ -219,13 +279,10 @@ class BluetoothService with ChangeNotifier {
     _batteryRequestTimer?.cancel();
     _batteryRequestTimer = null;
   }
-  
+
   void _requestBatteryStatus() {
     debugPrint('Requesting battery status...');
-    sendCommand({
-      "command": "GET_BATTERY_STATUS",
-      "params": {},
-    });
+    sendCommand({"command": "GET_BATTERY_STATUS", "params": {}});
   }
 
   Future<void> sendCommand(Map<String, dynamic> command) async {
@@ -238,7 +295,7 @@ class BluetoothService with ChangeNotifier {
         jsonCommand.codeUnits,
         withoutResponse: true,
       );
-      debugPrint("Sent: $jsonCommand"); 
+      debugPrint("Sent: $jsonCommand");
     } catch (e) {
       debugPrint("Error sending command: $e");
     }
