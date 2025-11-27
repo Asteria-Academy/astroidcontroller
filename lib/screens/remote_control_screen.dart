@@ -4,9 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:flutter_joystick/flutter_joystick.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../services/bluetooth_service.dart';
+import '../services/preferences_service.dart';
+import '../l10n/app_localizations.dart';
 import '../widgets/donut_led_picker.dart';
 
 class RemoteControlScreen extends StatefulWidget {
@@ -21,26 +22,47 @@ class _RemoteControlScreenState extends State<RemoteControlScreen> {
   double _lastDriveX = 0, _lastDriveY = 0;
   double _lastHeadX = 0, _lastHeadY = 0;
 
+  bool get _hapticsEnabled =>
+      PreferencesService.instance.isHapticFeedbackEnabled();
+
   bool _isGripperOpen = true;
   double _driveX = 0, _driveY = 0;
   double _headX = 0, _headY = 0;
-  bool _gestureGripper = false, _gestureSketcher = false, _gestureLauncher = false;
+  bool _gestureGripper = false,
+      _gestureSketcher = false,
+      _gestureLauncher = false;
   List<Color> _ledColors = List.generate(12, (_) => Colors.grey.shade800);
   Color _currentColor = Colors.deepPurpleAccent;
 
   @override
   void initState() {
     super.initState();
-    _driveTimer = Timer.periodic(const Duration(milliseconds: 100), (_) => _sendDriveCommand());
-    _headTimer = Timer.periodic(const Duration(milliseconds: 100), (_) => _sendHeadCommand());
-    context.read<BluetoothService>().sendCommand({"command": "GET_BATTERY_STATUS", "params": {}});
+    _driveTimer = Timer.periodic(
+      const Duration(milliseconds: 100),
+      (_) => _sendDriveCommand(),
+    );
+    _headTimer = Timer.periodic(
+      const Duration(milliseconds: 100),
+      (_) => _sendHeadCommand(),
+    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<BluetoothService>().sendCommand({
+          "command": "GET_BATTERY_STATUS",
+          "params": {},
+        });
+      }
+    });
   }
 
   @override
   void dispose() {
     _driveTimer?.cancel();
     _headTimer?.cancel();
-    context.read<BluetoothService>().sendCommand({"command": "DRIVE_DIRECT", "params": {"left_speed": 0, "right_speed": 0}});
+    context.read<BluetoothService>().sendCommand({
+      "command": "DRIVE_DIRECT",
+      "params": {"left_speed": 0, "right_speed": 0},
+    });
     super.dispose();
   }
 
@@ -59,33 +81,50 @@ class _RemoteControlScreenState extends State<RemoteControlScreen> {
           Navigator.of(context).popUntil((route) => route.isFirst);
         }
       });
-      return const Scaffold(backgroundColor: Color(0xFF0B1433), body: Center(child: Text("Disconnecting...")));
+      return const Scaffold(
+        backgroundColor: Color(0xFF0B1433),
+        body: Center(child: Text("Disconnecting...")),
+      );
     }
 
     return Scaffold(
       backgroundColor: const Color(0xFF0B1433),
       body: Stack(
         children: [
-          Positioned.fill(child: Image.asset('assets/splash/bg.png', fit: BoxFit.cover)),
+          Positioned.fill(
+            child: Image.asset('assets/splash/bg.png', fit: BoxFit.cover),
+          ),
           SafeArea(
             child: Column(
               children: [
                 _TopAppBar(
                   isConnected: btService.isConnected,
-                  deviceName: btService.connectedDevice?.platformName ?? 'Not Connected',
+                  deviceName:
+                      btService.connectedDevice?.platformName ??
+                      'Not Connected',
                   batteryLevel: btService.batteryLevel,
                   onBackPressed: () => Navigator.of(context).pop(),
-                  onEstopPressed: () => _sendCommand({"command": "ESTOP", "params": {}}),
+                  onEstopPressed: () =>
+                      _sendCommand({"command": "ESTOP", "params": {}}),
                 ),
                 Expanded(
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16.0,
+                      vertical: 8.0,
+                    ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
-                        _buildJoystick("Drive", isDriveJoystick: true),
+                        _buildJoystick(
+                          AppLocalizations.of(context)!.driveJoystick,
+                          isDriveJoystick: true,
+                        ),
                         _buildCenterControlPanel(),
-                        _buildJoystick("Head", isDriveJoystick: false),
+                        _buildJoystick(
+                          AppLocalizations.of(context)!.headJoystick,
+                          isDriveJoystick: false,
+                        ),
                       ],
                     ),
                   ),
@@ -99,32 +138,53 @@ class _RemoteControlScreenState extends State<RemoteControlScreen> {
   }
 
   Widget _buildCenterControlPanel() {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        ElevatedButton.icon(
-          icon: Icon(
-            _isGripperOpen
-                ? Icons.keyboard_arrow_down
-                : Icons.keyboard_arrow_up,
-          ),
-          label: Text(_isGripperOpen ? "Close Gripper" : "Open Gripper"),
-          onPressed: _toggleGripper,
-          style: ElevatedButton.styleFrom(minimumSize: const Size(180, 48)),
+    return Flexible(
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ElevatedButton.icon(
+              icon: Icon(
+                _isGripperOpen
+                    ? Icons.keyboard_arrow_down
+                    : Icons.keyboard_arrow_up,
+              ),
+              label: Text(
+                _isGripperOpen
+                    ? AppLocalizations.of(context)!.closeGripper
+                    : AppLocalizations.of(context)!.openGripper,
+              ),
+              onPressed: _toggleGripper,
+              style: ElevatedButton.styleFrom(minimumSize: const Size(180, 48)),
+            ),
+            const SizedBox(height: 16),
+            _buildFlyoutButton(
+              Icons.sentiment_very_satisfied,
+              AppLocalizations.of(context)!.expressions,
+              _showExpressionsDialog,
+            ),
+            const SizedBox(height: 12),
+            _buildFlyoutButton(
+              Icons.music_note,
+              AppLocalizations.of(context)!.sounds,
+              _showSoundsDialog,
+            ),
+            const SizedBox(height: 12),
+            _buildFlyoutButton(
+              Icons.lightbulb,
+              AppLocalizations.of(context)!.ledColor,
+              _showLedControlDialog,
+            ),
+            const SizedBox(height: 12),
+            _buildFlyoutButton(
+              Icons.smart_toy,
+              AppLocalizations.of(context)!.modes,
+              _showModesDialog,
+            ),
+          ],
         ),
-        const SizedBox(height: 16),
-        _buildFlyoutButton(
-          Icons.sentiment_very_satisfied,
-          "Expressions",
-          _showExpressionsDialog,
-        ),
-        const SizedBox(height: 12),
-        _buildFlyoutButton(Icons.music_note, "Sounds", _showSoundsDialog),
-        const SizedBox(height: 12),
-        _buildFlyoutButton(Icons.smart_toy, "Modes", _showModesDialog),
-        const SizedBox(height: 12),
-        _buildFlyoutButton(Icons.lightbulb, "LED Color", _showLedControlDialog),
-      ],
+      ),
     );
   }
 
@@ -132,42 +192,86 @@ class _RemoteControlScreenState extends State<RemoteControlScreen> {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Text(label, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white70)),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: Colors.white70,
+          ),
+        ),
         const SizedBox(height: 16),
-        
+
         Listener(
-          onPointerDown: (_) => HapticFeedback.lightImpact(), // <-- UPDATED
-          onPointerUp: (_) => HapticFeedback.selectionClick(), 
+          onPointerDown: (_) {
+            if (_hapticsEnabled) HapticFeedback.lightImpact();
+          },
+          onPointerUp: (_) {
+            if (_hapticsEnabled) HapticFeedback.selectionClick();
+          },
           child: Joystick(
             listener: (details) {
               if (isDriveJoystick) {
-                if ((details.y.abs() > 0.1 && _lastDriveY.abs() <= 0.1) || (details.x.abs() > 0.1 && _lastDriveX.abs() <= 0.1)) {
-                  HapticFeedback.selectionClick();
+                if ((details.y.abs() > 0.1 && _lastDriveY.abs() <= 0.1) ||
+                    (details.x.abs() > 0.1 && _lastDriveX.abs() <= 0.1)) {
+                  if (_hapticsEnabled) HapticFeedback.selectionClick();
                 }
-                _lastDriveX = details.x; _lastDriveY = details.y;
-                setState(() { _driveX = details.x; _driveY = details.y; });
+                _lastDriveX = details.x;
+                _lastDriveY = details.y;
+                setState(() {
+                  _driveX = details.x;
+                  _driveY = details.y;
+                });
               } else {
-                if ((details.y.abs() > 0.1 && _lastHeadY.abs() <= 0.1) || (details.x.abs() > 0.1 && _lastHeadX.abs() <= 0.1)) {
-                  HapticFeedback.selectionClick();
+                if ((details.y.abs() > 0.1 && _lastHeadY.abs() <= 0.1) ||
+                    (details.x.abs() > 0.1 && _lastHeadX.abs() <= 0.1)) {
+                  if (_hapticsEnabled) HapticFeedback.selectionClick();
                 }
-                _lastHeadX = details.x; _lastHeadY = details.y;
-                setState(() { _headX = details.x; _headY = details.y; });
+                _lastHeadX = details.x;
+                _lastHeadY = details.y;
+                setState(() {
+                  _headX = details.x;
+                  _headY = details.y;
+                });
               }
             },
             onStickDragStart: () {
-              HapticFeedback.lightImpact();
+              if (_hapticsEnabled) HapticFeedback.lightImpact();
             },
             onStickDragEnd: () {
-              HapticFeedback.selectionClick();
+              if (_hapticsEnabled) HapticFeedback.selectionClick();
               if (isDriveJoystick) {
-                setState(() { _driveX = 0; _driveY = 0; });
-                _sendCommand({"command": "DRIVE_DIRECT", "params": {"left_speed": 0, "right_speed": 0}});
+                setState(() {
+                  _driveX = 0;
+                  _driveY = 0;
+                });
+                _sendCommand({
+                  "command": "DRIVE_DIRECT",
+                  "params": {"left_speed": 0, "right_speed": 0},
+                });
               } else {
-                setState(() { _headX = 0; _headY = 0; });
+                setState(() {
+                  _headX = 0;
+                  _headY = 0;
+                });
               }
             },
-            base: Container(width: 160, height: 160, decoration: BoxDecoration(shape: BoxShape.circle, gradient: const LinearGradient(colors: [Color(0xFF1F3A66), Color(0xFF101D38)]), border: Border.all(color: const Color(0x996EE7FF), width: 2))),
-            stick: const Icon(Icons.control_camera, size: 50, color: Color(0xFF6EE7FF)),
+            base: Container(
+              width: 160,
+              height: 160,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF1F3A66), Color(0xFF101D38)],
+                ),
+                border: Border.all(color: const Color(0x996EE7FF), width: 2),
+              ),
+            ),
+            stick: const Icon(
+              Icons.control_camera,
+              size: 50,
+              color: Color(0xFF6EE7FF),
+            ),
           ),
         ),
       ],
@@ -184,7 +288,7 @@ class _RemoteControlScreenState extends State<RemoteControlScreen> {
           const Color offColor = Colors.black;
 
           return AlertDialog(
-            title: const Text('LED Control'),
+            title: Text(AppLocalizations.of(context)!.ledControl),
             content: SizedBox(
               width: MediaQuery.of(context).size.width * 0.7,
               child: Row(
@@ -194,21 +298,35 @@ class _RemoteControlScreenState extends State<RemoteControlScreen> {
                   Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Text('Tap a segment', style: TextStyle(fontSize: 12)),
+                      Text(
+                        AppLocalizations.of(context)!.tapSegment,
+                        style: TextStyle(fontSize: 12),
+                      ),
                       const SizedBox(height: 10),
                       DonutLedPicker(
                         ledColors: _ledColors,
                         onSegmentTapped: (index) async {
-                          await HapticFeedback.selectionClick();
-                          setDialogState(() { _ledColors[index] = _currentColor; });
+                          if (_hapticsEnabled) {
+                            await HapticFeedback.selectionClick();
+                          }
+                          final physicalLed = ((index + 6) % 12) + 1;
+                          setDialogState(() {
+                            _ledColors[index] = _currentColor;
+                          });
                           _sendCommand({
                             "command": "SET_LED_COLOR",
                             "params": {
-                              "led_id": index,
-                              "r": _currentColor == offColor ? 0 : _currentColor.red,
-                              "g": _currentColor == offColor ? 0 : _currentColor.green,
-                              "b": _currentColor == offColor ? 0 : _currentColor.blue
-                            }
+                              "led_id": physicalLed,
+                              "r": _currentColor == offColor
+                                  ? 0
+                                  : _currentColor.red,
+                              "g": _currentColor == offColor
+                                  ? 0
+                                  : _currentColor.green,
+                              "b": _currentColor == offColor
+                                  ? 0
+                                  : _currentColor.blue,
+                            },
                           });
                         },
                       ),
@@ -221,12 +339,18 @@ class _RemoteControlScreenState extends State<RemoteControlScreen> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Text('Select a color', style: TextStyle(fontSize: 12)),
+                        Text(
+                          AppLocalizations.of(context)!.selectColor,
+                          style: TextStyle(fontSize: 12),
+                        ),
                         const SizedBox(height: 10),
                         BlockPicker(
                           pickerColor: _currentColor,
                           onColorChanged: (color) async {
-                            await HapticFeedback.selectionClick();
+                            if (_hapticsEnabled) 
+                            {
+                              await HapticFeedback.selectionClick();
+                            }
                             setDialogState(() => _currentColor = color);
                           },
                           itemBuilder: (color, isCurrentColor, changeColor) {
@@ -240,22 +364,43 @@ class _RemoteControlScreenState extends State<RemoteControlScreen> {
                                   color: color,
                                   boxShadow: [
                                     if (isCurrentColor)
-                                      BoxShadow(color: color, blurRadius: 4, spreadRadius: 2)
+                                      BoxShadow(
+                                        color: color,
+                                        blurRadius: 4,
+                                        spreadRadius: 2,
+                                      ),
                                   ],
-                                  border: Border.all(color: Colors.white, width: isCurrentColor ? 2 : 0.5)
+                                  border: Border.all(
+                                    color: Colors.white,
+                                    width: isCurrentColor ? 2 : 0.5,
+                                  ),
                                 ),
                                 child: color == offColor
-                                    ? const Icon(Icons.power_settings_new, color: Colors.white54)
+                                    ? const Icon(
+                                        Icons.power_settings_new,
+                                        color: Colors.white54,
+                                      )
                                     : null,
                               ),
                             );
                           },
                           availableColors: [
                             offColor,
-                            Colors.red, Colors.pink, Colors.purple, Colors.deepPurple,
-                            Colors.indigo, Colors.blue, Colors.lightBlue, Colors.cyan,
-                            Colors.teal, Colors.green, Colors.lightGreen, Colors.lime,
-                            Colors.yellow, Colors.amber, Colors.orange,
+                            Colors.red,
+                            Colors.pink,
+                            Colors.purple,
+                            Colors.deepPurple,
+                            Colors.indigo,
+                            Colors.blue,
+                            Colors.lightBlue,
+                            Colors.cyan,
+                            Colors.teal,
+                            Colors.green,
+                            Colors.lightGreen,
+                            Colors.lime,
+                            Colors.yellow,
+                            Colors.amber,
+                            Colors.orange,
                             Colors.white,
                           ],
                         ),
@@ -268,22 +413,27 @@ class _RemoteControlScreenState extends State<RemoteControlScreen> {
             actions: <Widget>[
               ElevatedButton.icon(
                 icon: const Icon(Icons.select_all),
-                label: const Text('Set All LEDs'),
+                label: Text(AppLocalizations.of(context)!.setAllLeds),
                 onPressed: () async {
-                  await HapticFeedback.lightImpact();
-                  setDialogState(() => _ledColors = List.generate(12, (_) => _currentColor));
+                  if (_hapticsEnabled) await HapticFeedback.lightImpact();
+                  setDialogState(
+                    () => _ledColors = List.generate(12, (_) => _currentColor),
+                  );
                   _sendCommand({
                     "command": "SET_LED_COLOR",
                     "params": {
                       "led_id": "all",
                       "r": _currentColor == offColor ? 0 : _currentColor.red,
                       "g": _currentColor == offColor ? 0 : _currentColor.green,
-                      "b": _currentColor == offColor ? 0 : _currentColor.blue
-                    }
+                      "b": _currentColor == offColor ? 0 : _currentColor.blue,
+                    },
                   });
                 },
               ),
-              TextButton(child: const Text('Done'), onPressed: () => Navigator.of(context).pop()),
+              TextButton(
+                child: Text(AppLocalizations.of(context)!.done),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
             ],
           );
         },
@@ -308,25 +458,37 @@ class _RemoteControlScreenState extends State<RemoteControlScreen> {
   }
 
   void _toggleGripper() {
-    HapticFeedback.lightImpact();
+    if (_hapticsEnabled) HapticFeedback.lightImpact();
     setState(() => _isGripperOpen = !_isGripperOpen);
-    _sendCommand({"command": "SET_GRIPPER", "params": {"state": _isGripperOpen ? "open" : "closed"}});
+    _sendCommand({
+      "command": "SET_GRIPPER",
+      "params": {"state": _isGripperOpen ? "open" : "closed"},
+    });
   }
 
-  Widget _buildFlyoutButton(IconData icon, String label, VoidCallback onPressed) {
+  Widget _buildFlyoutButton(
+    IconData icon,
+    String label,
+    VoidCallback onPressed,
+  ) {
     return ElevatedButton.icon(
-      icon: Icon(icon), label: Text(label),
+      icon: Icon(icon),
+      label: Text(label),
       onPressed: () {
-        HapticFeedback.lightImpact();
+        if (_hapticsEnabled) HapticFeedback.lightImpact();
         onPressed();
       },
-      style: ElevatedButton.styleFrom(minimumSize: const Size(180, 48), backgroundColor: Colors.grey.shade800, foregroundColor: Colors.white),
+      style: ElevatedButton.styleFrom(
+        minimumSize: const Size(180, 48),
+        backgroundColor: Colors.grey.shade800,
+        foregroundColor: Colors.white,
+      ),
     );
   }
 
   void _sendHeadCommand() {
-    int yaw = (90 + (_headX * 75)).clamp(75, 105).toInt();
-    int pitch = (90 + (-_headY * 75)).clamp(20, 170).toInt();
+    int yaw = (90 + (_headX * 10)).clamp(80, 100).toInt();
+    int pitch = (90 + (-_headY * 10)).clamp(80, 100).toInt();
     if (_headX.abs() > 0.1 || _headY.abs() > 0.1) {
       _sendCommand({
         "command": "SET_HEAD_POSITION",
@@ -351,7 +513,7 @@ class _RemoteControlScreenState extends State<RemoteControlScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Set Expression'),
+        title: Text(AppLocalizations.of(context)!.setExpression),
         content: _buildControlCard(null, [
           _iconButton(Icons.sentiment_very_satisfied, "happy", Colors.green),
           _iconButton(Icons.sentiment_dissatisfied, "sad", Colors.blue),
@@ -361,29 +523,28 @@ class _RemoteControlScreenState extends State<RemoteControlScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Close'),
+            child: Text(AppLocalizations.of(context)!.close),
           ),
         ],
       ),
     );
   }
 
-
   void _showSoundsDialog() {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Play Sound'),
+        title: Text(AppLocalizations.of(context)!.playSound),
         content: _buildControlCard(null, [
           _soundButton(Icons.music_note, 1),
           _soundButton(Icons.notifications, 2),
-          _soundButton(Icons.warning, 3),
-          _soundButton(Icons.mic, 0),
+          _soundButton(Icons.check_circle, 3),
+          _soundButton(Icons.warning, 0),
         ]),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Close'),
+            child: Text(AppLocalizations.of(context)!.close),
           ),
         ],
       ),
@@ -396,61 +557,74 @@ class _RemoteControlScreenState extends State<RemoteControlScreen> {
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) {
           return AlertDialog(
-            title: const Text('Special Modes'),
+            title: Text(AppLocalizations.of(context)!.specialModes),
             content: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  _buildControlCard('Line Follower', [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        ElevatedButton(
-                          child: const Text("Start/Stop"),
-                          onPressed: () => _sendCommand({
-                            "command": "SET_AUTONOMOUS_STATE",
-                            "params": {"mode": "line_follower", "active": true},
-                          }),
-                        ),
-                        const SizedBox(width: 10),
-                        ElevatedButton(
-                          child: const Text("Calibrate"),
-                          onPressed: () => _sendCommand({
-                            "command": "CALIBRATE_SENSORS",
-                            "params": {},
-                          }),
-                        ),
-                      ],
-                    ),
-                  ]),
+                  _buildControlCard(
+                    AppLocalizations.of(context)!.lineFollower,
+                    [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          ElevatedButton(
+                            child: Text(
+                              AppLocalizations.of(context)!.startStop,
+                            ),
+                            onPressed: () => _sendCommand({
+                              "command": "SET_AUTONOMOUS_STATE",
+                              "params": {
+                                "mode": "line_follower",
+                                "active": true,
+                              },
+                            }),
+                          ),
+                          const SizedBox(width: 10),
+                          ElevatedButton(
+                            child: Text(
+                              AppLocalizations.of(context)!.calibrate,
+                            ),
+                            onPressed: () => _sendCommand({
+                              "command": "CALIBRATE_SENSORS",
+                              "params": {},
+                            }),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                   const SizedBox(height: 20),
-                  _buildControlCard('Wonder Pack Gestures', [
-                    _gestureSwitch(
-                      "Gripper",
-                      "gripper",
-                      _gestureGripper,
-                      setDialogState,
-                    ),
-                    _gestureSwitch(
-                      "Sketcher",
-                      "sketcher",
-                      _gestureSketcher,
-                      setDialogState,
-                    ),
-                    _gestureSwitch(
-                      "Launcher",
-                      "launcher",
-                      _gestureLauncher,
-                      setDialogState,
-                    ),
-                  ]),
+                  _buildControlCard(
+                    AppLocalizations.of(context)!.wonderPackGestures,
+                    [
+                      _gestureSwitch(
+                        AppLocalizations.of(context)!.gripper,
+                        "gripper",
+                        _gestureGripper,
+                        setDialogState,
+                      ),
+                      _gestureSwitch(
+                        AppLocalizations.of(context)!.sketcher,
+                        "sketcher",
+                        _gestureSketcher,
+                        setDialogState,
+                      ),
+                      _gestureSwitch(
+                        AppLocalizations.of(context)!.launcher,
+                        "launcher",
+                        _gestureLauncher,
+                        setDialogState,
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Close'),
+                child: Text(AppLocalizations.of(context)!.close),
               ),
             ],
           );
@@ -603,11 +777,12 @@ class _TopAppBar extends StatelessWidget {
                     Flexible(
                       child: Text(
                         deviceName,
-                        style: GoogleFonts.rajdhani(
+                        style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
                           letterSpacing: 1,
+                          fontFamily: 'monospace',
                         ),
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -624,8 +799,8 @@ class _TopAppBar extends StatelessWidget {
           ElevatedButton.icon(
             onPressed: onEstopPressed,
             icon: const Icon(Icons.emergency_sharp, color: Colors.white),
-            label: const Text(
-              'E-STOP',
+            label: Text(
+              AppLocalizations.of(context)!.emergencyStop,
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
             style: ElevatedButton.styleFrom(
@@ -669,10 +844,11 @@ class _TopAppBar extends StatelessWidget {
         const SizedBox(width: 8),
         Text(
           level != null ? '$level%' : '--%',
-          style: GoogleFonts.rajdhani(
+          style: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
             color: Colors.cyanAccent,
+            fontFamily: 'monospace',
           ),
         ),
       ],

@@ -16,12 +16,7 @@ final fbp.Guid nordicUartTxCharUuid = fbp.Guid(
   "6E400003-B5A3-F393-E0A9-E50E24DCCA9E",
 ); // Robot -> App
 
-enum BluetoothConnectionState {
-  disconnected,
-  scanning,
-  connecting,
-  connected,
-}
+enum BluetoothConnectionState { disconnected, scanning, connecting, connected }
 
 class BluetoothService with ChangeNotifier {
   BluetoothService._privateConstructor();
@@ -265,7 +260,7 @@ class BluetoothService with ChangeNotifier {
   void _startBatteryUpdates() {
     _stopBatteryUpdates();
 
-    _batteryRequestTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
+    _batteryRequestTimer = Timer.periodic(const Duration(seconds: 15), (timer) {
       if (isConnected) {
         _requestBatteryStatus();
       } else {
@@ -287,11 +282,12 @@ class BluetoothService with ChangeNotifier {
 
   Future<void> sendCommand(Map<String, dynamic> command) async {
     if (_rxCharacteristic == null) {
+      debugPrint("Cannot send command: RX characteristic is null");
       return;
     }
     final String jsonCommand = jsonEncode(command);
     try {
-      await _rxCharacteristic!.write(
+      await _rxCharacteristic?.write(
         jsonCommand.codeUnits,
         withoutResponse: true,
       );

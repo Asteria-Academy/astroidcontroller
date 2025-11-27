@@ -1,0 +1,346 @@
+{
+  "@@locale": "id",
+  "appTitle": "Astroid Remote",
+  "@appTitle": {
+    "description": "The title of the application"
+  },
+  "connectButton": "SAMBUNGKAN",
+  "@connectButton": {
+    "description": "Button text to connect to Bluetooth device"
+  },
+  "disconnectButton": "PUTUSKAN",
+  "@disconnectButton": {
+    "description": "Button text to disconnect from Bluetooth device"
+  },
+  "remoteButton": "KONTROL",
+  "@remoteButton": {
+    "description": "Button text to open remote control"
+  },
+  "settingsTitle": "PENGATURAN",
+  "@settingsTitle": {
+    "description": "Title of the settings screen"
+  },
+  "hapticFeedback": "Umpan Balik Haptic",
+  "@hapticFeedback": {
+    "description": "Setting label for haptic feedback toggle"
+  },
+  "hapticFeedbackDesc": "Rasakan sentuhan tombol",
+  "@hapticFeedbackDesc": {
+    "description": "Description for haptic feedback setting"
+  },
+  "showTutorial": "Tampilkan Tutorial",
+  "@showTutorial": {
+    "description": "Button to replay the tutorial"
+  },
+  "showTutorialDesc": "Putar ulang panduan aplikasi",
+  "@showTutorialDesc": {
+    "description": "Description for show tutorial button"
+  },
+  "aboutLicenses": "Tentang & Lisensi",
+  "@aboutLicenses": {
+    "description": "Button to show about dialog"
+  },
+  "aboutLicensesDesc": "Info aplikasi dan pemberitahuan legal",
+  "@aboutLicensesDesc": {
+    "description": "Description for about button"
+  },
+  "connectedTo": "Terhubung ke: {deviceName}",
+  "@connectedTo": {
+    "description": "Status message when connected to a device",
+    "placeholders": {
+      "deviceName": {
+        "type": "String",
+        "example": "Astroid Robot"
+      }
+    }
+  },
+  "noRobotConnected": "Robot Tidak Terhubung",
+  "@noRobotConnected": {
+    "description": "Status message when not connected"
+  },
+  "showcaseConnectTitle": "Sambungkan ke Robot",
+  "@showcaseConnectTitle": {
+    "description": "Tutorial title for connect button"
+  },
+  "showcaseConnectDesc": "Ketuk di sini untuk memindai dan terhubung ke robot Astroid Anda melalui Bluetooth.",
+  "@showcaseConnectDesc": {
+    "description": "Tutorial description for connect button"
+  },
+  "showcaseStatusTitle": "Status Koneksi",
+  "@showcaseStatusTitle": {
+    "description": "Tutorial title for status indicator"
+  },
+  "showcaseStatusDesc": "Ini menunjukkan apakah robot Anda terhubung. Saat terhubung, Anda dapat mengakses kontrol jarak jauh.",
+  "@showcaseStatusDesc": {
+    "description": "Tutorial description for status indicator"
+  },
+  "showcaseSettingsTitle": "Pengaturan",
+  "@showcaseSettingsTitle": {
+    "description": "Tutorial title for settings button"
+  },
+  "showcaseSettingsDesc": "Sesuaikan pengaturan aplikasi, aktifkan/nonaktifkan umpan balik haptic, atau putar ulang tutorial ini kapan saja.",
+  "@showcaseSettingsDesc": {
+    "description": "Tutorial description for settings button"
+  },
+  "versionLabel": "Versi {version}",
+  "@versionLabel": {
+    "description": "Version label in settings",
+    "placeholders": {
+      "version": {
+        "type": "String",
+        "example": "1.0.0"
+      }
+    }
+  },
+  "aboutDescription": "Aplikasi kontrol jarak jauh untuk robot Astroid. Sambungkan melalui Bluetooth dan kontrol robot Anda dengan kontrol yang intuitif.",
+  "@aboutDescription": {
+    "description": "App description in about dialog"
+  },
+  "copyright": "© 2025 Asteria Academy",
+  "@copyright": {
+    "description": "Copyright notice"
+  },
+  "language": "Bahasa",
+  "@language": {
+    "description": "Setting label for language selection"
+  },
+  "languageDesc": "Ubah bahasa aplikasi",
+  "@languageDesc": {
+    "description": "Description for language setting"
+  },
+  "showcaseDisconnectTitle": "Tombol Putuskan Koneksi",
+  "@showcaseDisconnectTitle": {
+    "description": "Tutorial title for disconnect button"
+  },
+  "showcaseDisconnectDesc": "Ketuk di sini untuk memutuskan koneksi dari robot Anda dan kembali ke layar koneksi. Anda dapat memutar ulang tutorial ini dari Pengaturan.",
+  "@showcaseDisconnectDesc": {
+    "description": "Tutorial description for disconnect button"
+  },
+  "showcaseRemoteTitle": "Kontrol Jarak Jauh",
+  "@showcaseRemoteTitle": {
+    "description": "Tutorial title for remote button"
+  },
+  "showcaseRemoteDesc": "Ketuk di sini untuk membuka antarmuka kontrol jarak jauh dan mengontrol robot Anda. Anda dapat memutar ulang tutorial ini dari Pengaturan.",
+  "@showcaseRemoteDesc": {
+    "description": "Tutorial description for remote button"
+  },
+  "connectScreenTitle": "Sambungkan ke Robot",
+  "@connectScreenTitle": {
+    "description": "Title of the connect screen"
+  },
+  "connectedToDevice": "Terhubung ke: {deviceName}",
+  "@connectedToDevice": {
+    "description": "Connection status message",
+    "placeholders": {
+      "deviceName": {
+        "type": "String",
+        "example": "Astroid Robot"
+      }
+    }
+  },
+  "batteryLevel": "Baterai: {level}%",
+  "@batteryLevel": {
+    "description": "Battery level display",
+    "placeholders": {
+      "level": {
+        "type": "String",
+        "example": "85"
+      }
+    }
+  },
+  "disconnect": "Putuskan",
+  "@disconnect": {
+    "description": "Disconnect button text"
+  },
+  "robotReady": "Robot Siap!",
+  "@robotReady": {
+    "description": "Message when robot is connected and ready"
+  },
+  "goBackStart": "Kembali dan mulai petualangan Anda.",
+  "@goBackStart": {
+    "description": "Message prompting user to go back to home screen"
+  },
+  "searchingRobots": "Mencari robot Astroid...",
+  "@searchingRobots": {
+    "description": "Message while scanning for robots"
+  },
+  "noRobotsFound": "Tidak Ada Robot Ditemukan",
+  "@noRobotsFound": {
+    "description": "Message when no robots found"
+  },
+  "ensureRobotOn": "Pastikan robot Anda menyala dan tekan Pindai.",
+  "@ensureRobotOn": {
+    "description": "Instructions when no robots found"
+  },
+  "scanning": "Memindai...",
+  "@scanning": {
+    "description": "Text shown during scan"
+  },
+  "scanForRobots": "Pindai Robot",
+  "@scanForRobots": {
+    "description": "Button text to start scanning"
+  },
+  "successfullyConnected": "Berhasil terhubung ke {deviceName}",
+  "@successfullyConnected": {
+    "description": "Success message when connected",
+    "placeholders": {
+      "deviceName": {
+        "type": "String",
+        "example": "Astroid Robot"
+      }
+    }
+  },
+  "connectionFailed": "Koneksi gagal. Silakan coba lagi.",
+  "@connectionFailed": {
+    "description": "Error message when connection fails"
+  },
+  "successfullyConnectedExclaim": "Berhasil Terhubung!",
+  "@successfullyConnectedExclaim": {
+    "description": "Success message on connecting screen"
+  },
+  "connectedToDeviceConnecting": "Terhubung ke {deviceName}",
+  "@connectedToDeviceConnecting": {
+    "description": "Connection confirmation message",
+    "placeholders": {
+      "deviceName": {
+        "type": "String",
+        "example": "Astroid Robot"
+      }
+    }
+  },
+  "connectionFailedTitle": "Koneksi Gagal",
+  "@connectionFailedTitle": {
+    "description": "Title when connection fails"
+  },
+  "couldNotConnect": "Tidak dapat terhubung ke robot.",
+  "@couldNotConnect": {
+    "description": "Error message when unable to connect"
+  },
+  "goBack": "Kembali",
+  "@goBack": {
+    "description": "Button to go back"
+  },
+  "connecting": "Menghubungkan...",
+  "@connecting": {
+    "description": "Status message while connecting"
+  },
+  "establishingLink": "Melakukan koneksi dengan {deviceName}",
+  "@establishingLink": {
+    "description": "Message while establishing connection",
+    "placeholders": {
+      "deviceName": {
+        "type": "String",
+        "example": "Astroid Robot"
+      }
+    }
+  },
+  "cancel": "Batal",
+  "@cancel": {
+    "description": "Cancel button text"
+  },
+  "disconnecting": "Memutuskan koneksi...",
+  "@disconnecting": {
+    "description": "Message shown when disconnecting from robot"
+  },
+  "driveJoystick": "Kendali",
+  "@driveJoystick": {
+    "description": "Label for drive joystick"
+  },
+  "headJoystick": "Kepala",
+  "@headJoystick": {
+    "description": "Label for head joystick"
+  },
+  "closeGripper": "Tutup Penjepit",
+  "@closeGripper": {
+    "description": "Button text to close gripper"
+  },
+  "openGripper": "Buka Penjepit",
+  "@openGripper": {
+    "description": "Button text to open gripper"
+  },
+  "expressions": "Ekspresi",
+  "@expressions": {
+    "description": "Button label for robot expressions"
+  },
+  "sounds": "Suara",
+  "@sounds": {
+    "description": "Button label for robot sounds"
+  },
+  "ledColor": "Warna LED",
+  "@ledColor": {
+    "description": "Button label for LED color control"
+  },
+  "modes": "Mode",
+  "@modes": {
+    "description": "Button label for special modes"
+  },
+  "ledControl": "Kontrol LED",
+  "@ledControl": {
+    "description": "Dialog title for LED control"
+  },
+  "tapSegment": "Ketuk segmen",
+  "@tapSegment": {
+    "description": "Instruction to tap LED segment"
+  },
+  "selectColor": "Pilih warna",
+  "@selectColor": {
+    "description": "Instruction to select a color"
+  },
+  "setAllLeds": "Atur Semua LED",
+  "@setAllLeds": {
+    "description": "Button to set all LEDs to same color"
+  },
+  "done": "Selesai",
+  "@done": {
+    "description": "Done button text"
+  },
+  "setExpression": "Atur Ekspresi",
+  "@setExpression": {
+    "description": "Dialog title for setting robot expression"
+  },
+  "close": "Tutup",
+  "@close": {
+    "description": "Close button text"
+  },
+  "playSound": "Putar Suara",
+  "@playSound": {
+    "description": "Dialog title for playing sounds"
+  },
+  "specialModes": "Mode Khusus",
+  "@specialModes": {
+    "description": "Dialog title for special modes"
+  },
+  "lineFollower": "Pengikut Garis",
+  "@lineFollower": {
+    "description": "Line follower mode label"
+  },
+  "startStop": "Mulai/Berhenti",
+  "@startStop": {
+    "description": "Start/Stop button text"
+  },
+  "calibrate": "Kalibrasi",
+  "@calibrate": {
+    "description": "Calibrate button text"
+  },
+  "wonderPackGestures": "Gestur Wonder Pack",
+  "@wonderPackGestures": {
+    "description": "Wonder Pack gestures section label"
+  },
+  "gripper": "Penjepit",
+  "@gripper": {
+    "description": "Gripper gesture label"
+  },
+  "sketcher": "Sketcher",
+  "@sketcher": {
+    "description": "Sketcher gesture label"
+  },
+  "launcher": "Peluncur",
+  "@launcher": {
+    "description": "Launcher gesture label"
+  },
+  "emergencyStop": "BERHENTI",
+  "@emergencyStop": {
+    "description": "Emergency stop button text"
+  }
+}
+

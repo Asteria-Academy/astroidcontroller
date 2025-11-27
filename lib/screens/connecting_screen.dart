@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart' as fbp;
 import '../services/bluetooth_service.dart';
+import '../l10n/app_localizations.dart';
 
 enum _ConnectingStatus { connecting, success, failed }
 
@@ -70,8 +71,10 @@ class _ConnectingScreenState extends State<ConnectingScreen> {
           icon: Icons.check_circle_rounded,
           iconColor: const Color(0xFF4CAF50),
           glowColor: const Color(0xFF81C784),
-          message: "Successfully Connected!",
-          subtitle: "Connected to ${widget.device.platformName}",
+          message: AppLocalizations.of(context)!.successfullyConnectedExclaim,
+          subtitle: AppLocalizations.of(
+            context,
+          )!.connectedToDeviceConnecting(widget.device.platformName),
         );
 
       case _ConnectingStatus.failed:
@@ -79,9 +82,10 @@ class _ConnectingScreenState extends State<ConnectingScreen> {
           icon: Icons.error_rounded,
           iconColor: const Color(0xFFF44336),
           glowColor: const Color(0xFFEF5350),
-          message: "Connection Failed",
-          subtitle: _errorReason ?? "Could not connect to the robot.",
-          buttonText: "Go Back",
+          message: AppLocalizations.of(context)!.connectionFailedTitle,
+          subtitle:
+              _errorReason ?? AppLocalizations.of(context)!.couldNotConnect,
+          buttonText: AppLocalizations.of(context)!.goBack,
           onButtonPressed: () => Navigator.of(context).pop(false),
         );
 
@@ -90,9 +94,11 @@ class _ConnectingScreenState extends State<ConnectingScreen> {
           icon: null,
           iconColor: const Color(0xFF00BCD4),
           glowColor: const Color(0xFF4DD0E1),
-          message: "Connecting...",
-          subtitle: "Establishing link with ${widget.device.platformName}",
-          buttonText: "Cancel",
+          message: AppLocalizations.of(context)!.connecting,
+          subtitle: AppLocalizations.of(
+            context,
+          )!.establishingLink(widget.device.platformName),
+          buttonText: AppLocalizations.of(context)!.cancel,
           onButtonPressed: () {
             _btService.disconnect();
             Navigator.of(context).pop(false);

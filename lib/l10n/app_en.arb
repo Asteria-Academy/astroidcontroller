@@ -1,0 +1,346 @@
+{
+  "@@locale": "en",
+  "appTitle": "Astroid Remote",
+  "@appTitle": {
+    "description": "The title of the application"
+  },
+  "connectButton": "CONNECT",
+  "@connectButton": {
+    "description": "Button text to connect to Bluetooth device"
+  },
+  "disconnectButton": "DISCONNECT",
+  "@disconnectButton": {
+    "description": "Button text to disconnect from Bluetooth device"
+  },
+  "remoteButton": "REMOTE",
+  "@remoteButton": {
+    "description": "Button text to open remote control"
+  },
+  "settingsTitle": "SETTINGS",
+  "@settingsTitle": {
+    "description": "Title of the settings screen"
+  },
+  "hapticFeedback": "Haptic Feedback",
+  "@hapticFeedback": {
+    "description": "Setting label for haptic feedback toggle"
+  },
+  "hapticFeedbackDesc": "Feel button presses",
+  "@hapticFeedbackDesc": {
+    "description": "Description for haptic feedback setting"
+  },
+  "showTutorial": "Show Tutorial",
+  "@showTutorial": {
+    "description": "Button to replay the tutorial"
+  },
+  "showTutorialDesc": "Replay the app walkthrough",
+  "@showTutorialDesc": {
+    "description": "Description for show tutorial button"
+  },
+  "aboutLicenses": "About & Licenses",
+  "@aboutLicenses": {
+    "description": "Button to show about dialog"
+  },
+  "aboutLicensesDesc": "App info and legal notices",
+  "@aboutLicensesDesc": {
+    "description": "Description for about button"
+  },
+  "connectedTo": "Connected to: {deviceName}",
+  "@connectedTo": {
+    "description": "Status message when connected to a device",
+    "placeholders": {
+      "deviceName": {
+        "type": "String",
+        "example": "Astroid Robot"
+      }
+    }
+  },
+  "noRobotConnected": "No Robot Connected",
+  "@noRobotConnected": {
+    "description": "Status message when not connected"
+  },
+  "showcaseConnectTitle": "Connect to Robot",
+  "@showcaseConnectTitle": {
+    "description": "Tutorial title for connect button"
+  },
+  "showcaseConnectDesc": "Tap here to scan for and connect to your Astroid robot via Bluetooth.",
+  "@showcaseConnectDesc": {
+    "description": "Tutorial description for connect button"
+  },
+  "showcaseStatusTitle": "Connection Status",
+  "@showcaseStatusTitle": {
+    "description": "Tutorial title for status indicator"
+  },
+  "showcaseStatusDesc": "This shows whether your robot is connected. When connected, you can access the remote control.",
+  "@showcaseStatusDesc": {
+    "description": "Tutorial description for status indicator"
+  },
+  "showcaseSettingsTitle": "Settings",
+  "@showcaseSettingsTitle": {
+    "description": "Tutorial title for settings button"
+  },
+  "showcaseSettingsDesc": "Adjust app settings, toggle haptic feedback, or replay this tutorial anytime.",
+  "@showcaseSettingsDesc": {
+    "description": "Tutorial description for settings button"
+  },
+  "versionLabel": "Version {version}",
+  "@versionLabel": {
+    "description": "Version label in settings",
+    "placeholders": {
+      "version": {
+        "type": "String",
+        "example": "1.0.0"
+      }
+    }
+  },
+  "aboutDescription": "A remote control app for Astroid robots. Connect via Bluetooth and control your robot with intuitive controls.",
+  "@aboutDescription": {
+    "description": "App description in about dialog"
+  },
+  "copyright": "© 2025 Asteria Academy",
+  "@copyright": {
+    "description": "Copyright notice"
+  },
+  "language": "Language",
+  "@language": {
+    "description": "Setting label for language selection"
+  },
+  "languageDesc": "Change app language",
+  "@languageDesc": {
+    "description": "Description for language setting"
+  },
+  "showcaseDisconnectTitle": "Disconnect Button",
+  "@showcaseDisconnectTitle": {
+    "description": "Tutorial title for disconnect button"
+  },
+  "showcaseDisconnectDesc": "Tap here to disconnect from your robot and return to connection screen. You can replay this tutorial from Settings.",
+  "@showcaseDisconnectDesc": {
+    "description": "Tutorial description for disconnect button"
+  },
+  "showcaseRemoteTitle": "Remote Control",
+  "@showcaseRemoteTitle": {
+    "description": "Tutorial title for remote button"
+  },
+  "showcaseRemoteDesc": "Tap here to open the remote control interface and control your robot. You can replay this tutorial from Settings.",
+  "@showcaseRemoteDesc": {
+    "description": "Tutorial description for remote button"
+  },
+  "connectScreenTitle": "Connect to Robot",
+  "@connectScreenTitle": {
+    "description": "Title of the connect screen"
+  },
+  "connectedToDevice": "Connected to: {deviceName}",
+  "@connectedToDevice": {
+    "description": "Connection status message",
+    "placeholders": {
+      "deviceName": {
+        "type": "String",
+        "example": "Astroid Robot"
+      }
+    }
+  },
+  "batteryLevel": "Battery: {level}%",
+  "@batteryLevel": {
+    "description": "Battery level display",
+    "placeholders": {
+      "level": {
+        "type": "String",
+        "example": "85"
+      }
+    }
+  },
+  "disconnect": "Disconnect",
+  "@disconnect": {
+    "description": "Disconnect button text"
+  },
+  "robotReady": "Robot is Ready!",
+  "@robotReady": {
+    "description": "Message when robot is connected and ready"
+  },
+  "goBackStart": "Go back and start your adventure.",
+  "@goBackStart": {
+    "description": "Message prompting user to go back to home screen"
+  },
+  "searchingRobots": "Searching for Astroid robots...",
+  "@searchingRobots": {
+    "description": "Message while scanning for robots"
+  },
+  "noRobotsFound": "No Robots Found",
+  "@noRobotsFound": {
+    "description": "Message when no robots found"
+  },
+  "ensureRobotOn": "Make sure your robot is turned on and press Scan.",
+  "@ensureRobotOn": {
+    "description": "Instructions when no robots found"
+  },
+  "scanning": "Scanning...",
+  "@scanning": {
+    "description": "Text shown during scan"
+  },
+  "scanForRobots": "Scan for Robots",
+  "@scanForRobots": {
+    "description": "Button text to start scanning"
+  },
+  "successfullyConnected": "Successfully connected to {deviceName}",
+  "@successfullyConnected": {
+    "description": "Success message when connected",
+    "placeholders": {
+      "deviceName": {
+        "type": "String",
+        "example": "Astroid Robot"
+      }
+    }
+  },
+  "connectionFailed": "Connection failed. Please try again.",
+  "@connectionFailed": {
+    "description": "Error message when connection fails"
+  },
+  "successfullyConnectedExclaim": "Successfully Connected!",
+  "@successfullyConnectedExclaim": {
+    "description": "Success message on connecting screen"
+  },
+  "connectedToDeviceConnecting": "Connected to {deviceName}",
+  "@connectedToDeviceConnecting": {
+    "description": "Connection confirmation message",
+    "placeholders": {
+      "deviceName": {
+        "type": "String",
+        "example": "Astroid Robot"
+      }
+    }
+  },
+  "connectionFailedTitle": "Connection Failed",
+  "@connectionFailedTitle": {
+    "description": "Title when connection fails"
+  },
+  "couldNotConnect": "Could not connect to the robot.",
+  "@couldNotConnect": {
+    "description": "Error message when unable to connect"
+  },
+  "goBack": "Go Back",
+  "@goBack": {
+    "description": "Button to go back"
+  },
+  "connecting": "Connecting...",
+  "@connecting": {
+    "description": "Status message while connecting"
+  },
+  "establishingLink": "Establishing link with {deviceName}",
+  "@establishingLink": {
+    "description": "Message while establishing connection",
+    "placeholders": {
+      "deviceName": {
+        "type": "String",
+        "example": "Astroid Robot"
+      }
+    }
+  },
+  "cancel": "Cancel",
+  "@cancel": {
+    "description": "Cancel button text"
+  },
+  "disconnecting": "Disconnecting...",
+  "@disconnecting": {
+    "description": "Message shown when disconnecting from robot"
+  },
+  "driveJoystick": "Drive",
+  "@driveJoystick": {
+    "description": "Label for drive joystick"
+  },
+  "headJoystick": "Head",
+  "@headJoystick": {
+    "description": "Label for head joystick"
+  },
+  "closeGripper": "Close Gripper",
+  "@closeGripper": {
+    "description": "Button text to close gripper"
+  },
+  "openGripper": "Open Gripper",
+  "@openGripper": {
+    "description": "Button text to open gripper"
+  },
+  "expressions": "Expressions",
+  "@expressions": {
+    "description": "Button label for robot expressions"
+  },
+  "sounds": "Sounds",
+  "@sounds": {
+    "description": "Button label for robot sounds"
+  },
+  "ledColor": "LED Color",
+  "@ledColor": {
+    "description": "Button label for LED color control"
+  },
+  "modes": "Modes",
+  "@modes": {
+    "description": "Button label for special modes"
+  },
+  "ledControl": "LED Control",
+  "@ledControl": {
+    "description": "Dialog title for LED control"
+  },
+  "tapSegment": "Tap a segment",
+  "@tapSegment": {
+    "description": "Instruction to tap LED segment"
+  },
+  "selectColor": "Select a color",
+  "@selectColor": {
+    "description": "Instruction to select a color"
+  },
+  "setAllLeds": "Set All LEDs",
+  "@setAllLeds": {
+    "description": "Button to set all LEDs to same color"
+  },
+  "done": "Done",
+  "@done": {
+    "description": "Done button text"
+  },
+  "setExpression": "Set Expression",
+  "@setExpression": {
+    "description": "Dialog title for setting robot expression"
+  },
+  "close": "Close",
+  "@close": {
+    "description": "Close button text"
+  },
+  "playSound": "Play Sound",
+  "@playSound": {
+    "description": "Dialog title for playing sounds"
+  },
+  "specialModes": "Special Modes",
+  "@specialModes": {
+    "description": "Dialog title for special modes"
+  },
+  "lineFollower": "Line Follower",
+  "@lineFollower": {
+    "description": "Line follower mode label"
+  },
+  "startStop": "Start/Stop",
+  "@startStop": {
+    "description": "Start/Stop button text"
+  },
+  "calibrate": "Calibrate",
+  "@calibrate": {
+    "description": "Calibrate button text"
+  },
+  "wonderPackGestures": "Wonder Pack Gestures",
+  "@wonderPackGestures": {
+    "description": "Wonder Pack gestures section label"
+  },
+  "gripper": "Gripper",
+  "@gripper": {
+    "description": "Gripper gesture label"
+  },
+  "sketcher": "Sketcher",
+  "@sketcher": {
+    "description": "Sketcher gesture label"
+  },
+  "launcher": "Launcher",
+  "@launcher": {
+    "description": "Launcher gesture label"
+  },
+  "emergencyStop": "E-STOP",
+  "@emergencyStop": {
+    "description": "Emergency stop button text"
+  }
+}
+

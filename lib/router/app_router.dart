@@ -7,6 +7,7 @@ import '../screens/home_screen.dart';
 import '../screens/connect_screen.dart';
 import '../screens/connecting_screen.dart';
 import '../screens/remote_control_screen.dart';
+import '../screens/settings_screen.dart';
 
 class AppRoutes {
   static const String splash = '/splash';
@@ -14,6 +15,7 @@ class AppRoutes {
   static const String connect = '/connect';
   static const String connecting = '/connecting';
   static const String remoteControl = '/remote-control';
+  static const String settings = '/settings';
 }
 
 Route<dynamic> onGenerateRoute(RouteSettings settings) {
@@ -35,6 +37,9 @@ Route<dynamic> onGenerateRoute(RouteSettings settings) {
 
     case AppRoutes.remoteControl:
       return MaterialPageRoute(builder: (_) => const RemoteControlScreen());
+
+    case AppRoutes.settings:
+      return MaterialPageRoute(builder: (_) => const SettingsScreen());
 
     default:
       return MaterialPageRoute(builder: (_) => const HomeScreen());
