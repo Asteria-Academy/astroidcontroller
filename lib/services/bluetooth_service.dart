@@ -138,6 +138,7 @@ class BluetoothService with ChangeNotifier {
 
       _updateConnectionState(BluetoothConnectionState.connected);
 
+      await sendCommand({"command":"PLAY_INTERNAL_SOUND","params":{"sound_id":3}});
       await sendCommand({"command": "GET_BATTERY_STATUS", "params": {}});
       _startBatteryUpdates();
 

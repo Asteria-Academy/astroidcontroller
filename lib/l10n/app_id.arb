@@ -341,6 +341,30 @@
   "emergencyStop": "BERHENTI",
   "@emergencyStop": {
     "description": "Emergency stop button text"
+  },
+  "btnNext": "Lanjutkan",
+  "@btnNext": {
+    "description": "Button text for 'Next' in tutorials"
+  },
+  "btnPrevious": "Sebelumnya",
+  "@btnPrevious": {
+    "description": "Button text for 'Previous' in tutorials"
+  },
+  "btnSkip": "Lewati",
+  "@btnSkip": {
+    "description": "Button text for 'Skip' in tutorials"
+  }, 
+  "btnFinish": "Selesai",
+  "@btnFinish": {
+    "description": "Button text for 'Finish' in tutorials"
+  },
+  "pickAColor": "Pilih warna kustom LED.",
+  "@pickAColor": {
+    "description": "Instruction to pick a color for LED segment"
+  },
+  "select": "Pilih",
+  "@select": {
+    "description": "Select Custom Color button text"
   }
 }
 

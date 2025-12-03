@@ -547,6 +547,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'E-STOP'**
   String get emergencyStop;
+
+  /// Button text for 'Next' in tutorials
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get btnNext;
+
+  /// Button text for 'Previous' in tutorials
+  ///
+  /// In en, this message translates to:
+  /// **'Previous'**
+  String get btnPrevious;
+
+  /// Button text for 'Skip' in tutorials
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get btnSkip;
+
+  /// Button text for 'Finish' in tutorials
+  ///
+  /// In en, this message translates to:
+  /// **'Finish'**
+  String get btnFinish;
+
+  /// Instruction to pick a color for LED segment
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a color for the LED segment.'**
+  String get pickAColor;
+
+  /// Select Custom Color button text
+  ///
+  /// In en, this message translates to:
+  /// **'Select'**
+  String get select;
 }
 
 class _AppLocalizationsDelegate

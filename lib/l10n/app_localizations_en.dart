@@ -253,4 +253,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get emergencyStop => 'E-STOP';
+
+  @override
+  String get btnNext => 'Next';
+
+  @override
+  String get btnPrevious => 'Previous';
+
+  @override
+  String get btnSkip => 'Skip';
+
+  @override
+  String get btnFinish => 'Finish';
+
+  @override
+  String get pickAColor => 'Pick a color for the LED segment.';
+
+  @override
+  String get select => 'Select';
 }

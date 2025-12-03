@@ -2,10 +2,8 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:showcaseview/showcaseview.dart';
 import '../router/app_router.dart';
 import '../services/bluetooth_service.dart';
-import '../services/preferences_service.dart';
 import '../l10n/app_localizations.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -17,106 +15,27 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final BluetoothService _btService = BluetoothService.instance;
-  final PreferencesService _prefs = PreferencesService.instance;
-
-  // Showcase keys
-  final GlobalKey _settingsKey = GlobalKey();
-  final GlobalKey _connectKey = GlobalKey();
-  final GlobalKey _remoteKey = GlobalKey();
-  final GlobalKey _disconnectKey = GlobalKey();
-  final GlobalKey _statusKey = GlobalKey();
-
-  bool _hasShownDisconnectedTutorial = false;
-  bool _hasShownConnectedTutorial = false;
 
   @override
   void initState() {
     super.initState();
     _btService.addListener(_onServiceChanged);
-
-    // Register ShowcaseView with configuration
-    ShowcaseView.register(
-      enableAutoScroll: false,
-      disableBarrierInteraction: false,
-      disableMovingAnimation: true,
-      disableScaleAnimation: true,
-    );
-
-    // Check tutorial state
-    _hasShownDisconnectedTutorial = _prefs.hasShownDisconnectedShowcase();
-    _hasShownConnectedTutorial = _prefs.hasShownConnectedShowcase();
-
-    // Start tutorial if not shown before
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!_prefs.hasShownShowcase()) {
-        _startDisconnectedShowcase();
-      }
-    });
-  }
-
-  void _startDisconnectedShowcase() {
-    ShowcaseView.get().startShowCase([_statusKey, _connectKey, _settingsKey]);
-    _prefs.setDisconnectedShowcaseShown(true);
-    _prefs.setShowcaseShown(true);
-    setState(() {
-      _hasShownDisconnectedTutorial = true;
-    });
-  }
-
-  void _startConnectedShowcase() {
-    ShowcaseView.get().startShowCase([_remoteKey, _disconnectKey]);
-    _prefs.setConnectedShowcaseShown(true);
-    setState(() {
-      _hasShownConnectedTutorial = true;
-    });
   }
 
   @override
   void dispose() {
-    ShowcaseView.get().unregister();
     _btService.removeListener(_onServiceChanged);
     super.dispose();
   }
 
   void _onServiceChanged() {
     if (mounted) {
-      final wasConnected = _hasShownConnectedTutorial;
       setState(() {});
-
-      if (_btService.isConnected &&
-          !wasConnected &&
-          _hasShownDisconnectedTutorial) {
-        Future.delayed(const Duration(milliseconds: 1500), () {
-          if (mounted && ModalRoute.of(context)?.isCurrent == true) {
-            _startConnectedShowcase();
-          }
-        });
-      }
     }
   }
 
-  Future<void> _openSettings() async {
-    final result = await Navigator.pushNamed(context, AppRoutes.settings);
-
-    if (!mounted) return;
-
-    if (result == true) {
-      setState(() {
-        _hasShownDisconnectedTutorial = false;
-        _hasShownConnectedTutorial = false;
-      });
-
-      await Future.delayed(const Duration(milliseconds: 300));
-      if (mounted) {
-        _startDisconnectedShowcase();
-
-        if (_btService.isConnected) {
-          Future.delayed(const Duration(milliseconds: 500), () {
-            if (mounted) _startConnectedShowcase();
-          });
-        }
-      }
-    }
+  void _openSettings() async {
+    Navigator.pushNamed(context, AppRoutes.settings);
   }
 
   @override
@@ -133,13 +52,11 @@ class _HomeScreenState extends State<HomeScreen> {
           final deviceName =
               _btService.connectedDevice?.platformName ?? "Unknown";
           final panelH = math.min(h * 0.56, 460.0);
-
           final panelMaxWidth = math.min(w * 0.78, 500.0);
           final panelMinWidthBase = math.min(w * 0.55, 200.0);
           final panelW = isConnected
               ? panelMaxWidth
               : math.min(panelMaxWidth, math.max(panelMinWidthBase, 320.0));
-
           final ctaH = math.min(h * 0.10, 64.0);
           final ctaCount = isConnected ? 2 : 1;
           final horizontalPadding = panelH * 0.08 * 2;
@@ -148,14 +65,13 @@ class _HomeScreenState extends State<HomeScreen> {
           final ctaSpacing = ctaCount > 1
               ? math.min(math.max(rawSpacing, 12.0), availableCTAWidth * 0.3)
               : 0.0;
-          debugPrint('choosed ctaSpacing: $ctaSpacing');
-
           final totalSpacing = (ctaCount - 1) * ctaSpacing;
           final ctaBaseWidth = ctaCount > 0
               ? math.max(availableCTAWidth - totalSpacing, 0.0) / ctaCount
               : 0.0;
           final ctaW = math.min(ctaBaseWidth, 200.0);
 
+          debugPrint('choosed ctaSpacing: $ctaSpacing');
           return Stack(
             children: [
               // 1) Galaxy background
@@ -180,10 +96,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   onRemoteTap: () {
                     Navigator.pushNamed(context, AppRoutes.remoteControl);
                   },
-                  statusKey: _statusKey,
-                  connectKey: _connectKey,
-                  remoteKey: _remoteKey,
-                  disconnectKey: _disconnectKey,
                 ),
               ),
 
@@ -191,36 +103,29 @@ class _HomeScreenState extends State<HomeScreen> {
               Positioned(
                 top: 24,
                 right: 24,
-                child: Showcase(
-                  key: _settingsKey,
-                  title: AppLocalizations.of(context)!.showcaseSettingsTitle,
-                  description: AppLocalizations.of(
-                    context,
-                  )!.showcaseSettingsDesc,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: const Color.fromARGB(128, 0, 0, 0),
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: const Color.fromARGB(255, 255, 116, 225),
-                        width: 2,
-                      ),
-                      boxShadow: const [
-                        BoxShadow(
-                          color: Color.fromARGB(39, 255, 9, 202),
-                          blurRadius: 8,
-                          spreadRadius: 2,
-                        ),
-                      ],
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: const Color.fromARGB(128, 0, 0, 0),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: const Color.fromARGB(255, 255, 116, 225),
+                      width: 2,
                     ),
-                    child: IconButton(
-                      icon: const Icon(
-                        Icons.settings,
-                        color: Colors.white,
-                        size: 32,
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Color.fromARGB(39, 255, 9, 202),
+                        blurRadius: 8,
+                        spreadRadius: 2,
                       ),
-                      onPressed: _openSettings,
+                    ],
+                  ),
+                  child: IconButton(
+                    icon: const Icon(
+                      Icons.settings,
+                      color: Colors.white,
+                      size: 32,
                     ),
+                    onPressed: _openSettings,
                   ),
                 ),
               ),
@@ -243,10 +148,6 @@ class _GalaxyPanel extends StatelessWidget {
     required this.deviceName,
     required this.onConnectTap,
     required this.onRemoteTap,
-    required this.statusKey,
-    required this.connectKey,
-    required this.remoteKey,
-    required this.disconnectKey,
   });
 
   final double width;
@@ -258,10 +159,6 @@ class _GalaxyPanel extends StatelessWidget {
   final String deviceName;
   final VoidCallback onConnectTap;
   final VoidCallback onRemoteTap;
-  final GlobalKey statusKey;
-  final GlobalKey connectKey;
-  final GlobalKey remoteKey;
-  final GlobalKey disconnectKey;
 
   @override
   Widget build(BuildContext context) {
@@ -318,52 +215,47 @@ class _GalaxyPanel extends StatelessWidget {
           Expanded(
             flex: 2,
             child: Center(
-              child: Showcase(
-                key: statusKey,
-                title: AppLocalizations.of(context)!.showcaseStatusTitle,
-                description: AppLocalizations.of(context)!.showcaseStatusDesc,
-                child: Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: ctaWidth * 0.08,
-                    vertical: ctaHeight * 0.12,
-                  ),
-                  decoration: BoxDecoration(
+              child: Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: ctaWidth * 0.08,
+                  vertical: ctaHeight * 0.12,
+                ),
+                decoration: BoxDecoration(
+                  color: isConnected
+                      ? const Color(0x334CAF50)
+                      : const Color(0x33FF9800),
+                  borderRadius: BorderRadius.circular(ctaHeight * 0.25),
+                  border: Border.all(
                     color: isConnected
-                        ? const Color(0x334CAF50)
-                        : const Color(0x33FF9800),
-                    borderRadius: BorderRadius.circular(ctaHeight * 0.25),
-                    border: Border.all(
+                        ? const Color(0xFF4CAF50)
+                        : const Color(0xFFFF9800),
+                    width: 1.5,
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      isConnected ? Icons.check_circle : Icons.info_outline,
                       color: isConnected
-                          ? const Color(0xFF4CAF50)
-                          : const Color(0xFFFF9800),
-                      width: 1.5,
+                          ? Colors.greenAccent
+                          : Colors.orangeAccent,
+                      size: height * 0.06,
                     ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        isConnected ? Icons.check_circle : Icons.info_outline,
-                        color: isConnected
-                            ? Colors.greenAccent
-                            : Colors.orangeAccent,
-                        size: height * 0.06,
+                    SizedBox(width: ctaWidth * 0.03),
+                    Text(
+                      isConnected
+                          ? AppLocalizations.of(
+                              context,
+                            )!.connectedTo(deviceName)
+                          : AppLocalizations.of(context)!.noRobotConnected,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: height * 0.04,
+                        fontWeight: FontWeight.w500,
                       ),
-                      SizedBox(width: ctaWidth * 0.03),
-                      Text(
-                        isConnected
-                            ? AppLocalizations.of(
-                                context,
-                              )!.connectedTo(deviceName)
-                            : AppLocalizations.of(context)!.noRobotConnected,
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: height * 0.04,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -376,75 +268,52 @@ class _GalaxyPanel extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 if (!isConnected)
-                  Showcase(
-                    key: connectKey,
-                    title: AppLocalizations.of(context)!.showcaseConnectTitle,
-                    description: AppLocalizations.of(
-                      context,
-                    )!.showcaseConnectDesc,
-                    child: _buildCTAButton(
-                      label: AppLocalizations.of(context)!.connectButton,
-                      icon: Icons.bluetooth,
-                      width: ctaWidth,
-                      height: ctaHeight,
-                      onTap: onConnectTap,
-                      gradient: const LinearGradient(
-                        colors: [
-                          Color.fromARGB(255, 97, 153, 237),
-                          Color.fromARGB(255, 74, 93, 217),
-                        ],
-                      ),
-                      iconColor: const Color(0xFFE1FBFF),
-                      borderColor: const Color.fromARGB(255, 255, 255, 255),
-                      shadowColor: const Color(0xFF0CA6C4),
+                  _buildCTAButton(
+                    label: AppLocalizations.of(context)!.connectButton,
+                    icon: Icons.bluetooth,
+                    width: ctaWidth,
+                    height: ctaHeight,
+                    onTap: onConnectTap,
+                    gradient: const LinearGradient(
+                      colors: [
+                        Color.fromARGB(255, 97, 153, 237),
+                        Color.fromARGB(255, 74, 93, 217),
+                      ],
                     ),
+                    iconColor: const Color(0xFFE1FBFF),
+                    borderColor: const Color.fromARGB(255, 255, 255, 255),
+                    shadowColor: const Color(0xFF0CA6C4),
                   ),
                 if (isConnected) ...[
-                  Showcase(
-                    key: remoteKey,
-                    title: AppLocalizations.of(context)!.showcaseRemoteTitle,
-                    description: AppLocalizations.of(
-                      context,
-                    )!.showcaseRemoteDesc,
-                    child: _buildCTAButton(
-                      label: AppLocalizations.of(context)!.remoteButton,
-                      icon: Icons.gamepad,
-                      width: ctaWidth,
-                      height: ctaHeight,
-                      onTap: onRemoteTap,
-                      gradient: const LinearGradient(
-                        colors: [
-                          Color.fromARGB(255, 160, 88, 219),
-                          Color.fromARGB(255, 104, 48, 149),
-                        ],
-                      ),
-                      iconColor: const Color.fromARGB(255, 255, 255, 255),
-                      borderColor: const Color.fromARGB(255, 255, 255, 255),
-                      shadowColor: const Color.fromARGB(255, 160, 88, 219),
+                  _buildCTAButton(
+                    label: AppLocalizations.of(context)!.remoteButton,
+                    icon: Icons.gamepad,
+                    width: ctaWidth,
+                    height: ctaHeight,
+                    onTap: onRemoteTap,
+                    gradient: const LinearGradient(
+                      colors: [
+                        Color.fromARGB(255, 160, 88, 219),
+                        Color.fromARGB(255, 104, 48, 149),
+                      ],
                     ),
+                    iconColor: const Color.fromARGB(255, 255, 255, 255),
+                    borderColor: const Color.fromARGB(255, 255, 255, 255),
+                    shadowColor: const Color.fromARGB(255, 160, 88, 219),
                   ),
                   SizedBox(width: ctaSpacing),
-                  Showcase(
-                    key: disconnectKey,
-                    title: AppLocalizations.of(
-                      context,
-                    )!.showcaseDisconnectTitle,
-                    description: AppLocalizations.of(
-                      context,
-                    )!.showcaseDisconnectDesc,
-                    child: _buildCTAButton(
-                      label: AppLocalizations.of(context)!.disconnectButton,
-                      icon: Icons.bluetooth_disabled,
-                      width: ctaWidth,
-                      height: ctaHeight,
-                      onTap: () => BluetoothService.instance.disconnect(),
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFFFF5252), Color(0xFFD32F2F)],
-                      ),
-                      iconColor: const Color(0xFFFFE5E5),
-                      borderColor: const Color.fromARGB(255, 255, 255, 255),
-                      shadowColor: const Color.fromARGB(255, 255, 43, 43),
+                  _buildCTAButton(
+                    label: AppLocalizations.of(context)!.disconnectButton,
+                    icon: Icons.bluetooth_disabled,
+                    width: ctaWidth,
+                    height: ctaHeight,
+                    onTap: () => BluetoothService.instance.disconnect(),
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFFFF5252), Color(0xFFD32F2F)],
                     ),
+                    iconColor: const Color(0xFFFFE5E5),
+                    borderColor: const Color.fromARGB(255, 255, 255, 255),
+                    shadowColor: const Color.fromARGB(255, 255, 43, 43),
                   ),
                 ],
               ],

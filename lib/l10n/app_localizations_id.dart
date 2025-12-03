@@ -252,4 +252,22 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get emergencyStop => 'BERHENTI';
+
+  @override
+  String get btnNext => 'Lanjutkan';
+
+  @override
+  String get btnPrevious => 'Sebelumnya';
+
+  @override
+  String get btnSkip => 'Lewati';
+
+  @override
+  String get btnFinish => 'Selesai';
+
+  @override
+  String get pickAColor => 'Pilih warna kustom LED.';
+
+  @override
+  String get select => 'Pilih';
 }

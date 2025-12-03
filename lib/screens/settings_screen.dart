@@ -1,10 +1,11 @@
 // lib/screens/settings_screen.dart
+import 'package:astroidcontroller/router/app_router.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/preferences_service.dart';
 import '../l10n/app_localizations.dart';
-import '../main.dart';
+import '../app.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -43,24 +44,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (languageCode == null) return;
     if (_hapticEnabled) HapticFeedback.selectionClick();
 
-    // Save the language preference
     await _prefs.setLanguage(languageCode);
 
-    // Update state to reflect new language immediately
     setState(() {
       _selectedLanguage = languageCode;
     });
 
-    // Restart the app to apply language changes
     if (mounted) {
-      RestartWidget.restartApp(context);
+      MyApp.setLocale(context, Locale(languageCode));
     }
   }
 
-  void _showTutorial() {
+  void _showTutorial() async {
     if (_hapticEnabled) HapticFeedback.mediumImpact();
-    // Return 'true' to signal HomeScreen to restart the tutorial
-    Navigator.pop(context, true);
+
+    final prefs = PreferencesService.instance;
+    await prefs.setShowcaseShown(false);
+
+    if (!mounted) return;
+
+    Navigator.pushNamedAndRemoveUntil(
+      context,
+      AppRoutes.tutorial,
+      (Route<dynamic> route) => false,
+    );
   }
 
   void _showAbout() {

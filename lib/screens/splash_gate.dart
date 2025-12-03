@@ -3,6 +3,7 @@ import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../router/app_router.dart';
+import '../services/preferences_service.dart';
 
 class SplashGate extends StatefulWidget {
   const SplashGate({super.key});
@@ -21,8 +22,7 @@ class _SplashGateState extends State<SplashGate> with TickerProviderStateMixin {
         AnimationController(vsync: this, duration: const Duration(seconds: 3))
           ..addStatusListener((s) {
             if (s == AnimationStatus.completed) {
-              if (!mounted) return;
-              Navigator.pushReplacementNamed(context, AppRoutes.home);
+              _checkFirstRunAndNavigate();
             }
           });
 
@@ -32,6 +32,18 @@ class _SplashGateState extends State<SplashGate> with TickerProviderStateMixin {
     )..repeat(reverse: true);
 
     _boot();
+  }
+
+  void _checkFirstRunAndNavigate() {
+    if (!mounted) return;
+
+    final prefs = PreferencesService.instance;
+
+    if (prefs.hasShownShowcase()) {
+      Navigator.pushReplacementNamed(context, AppRoutes.home);
+    } else {
+      Navigator.pushReplacementNamed(context, AppRoutes.tutorial);
+    }
   }
 
   Future<void> _boot() async {

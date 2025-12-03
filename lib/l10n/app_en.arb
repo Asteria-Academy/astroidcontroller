@@ -341,6 +341,30 @@
   "emergencyStop": "E-STOP",
   "@emergencyStop": {
     "description": "Emergency stop button text"
+  },
+  "btnNext": "Next",
+  "@btnNext": {
+    "description": "Button text for 'Next' in tutorials"
+  },
+  "btnPrevious": "Previous",
+  "@btnPrevious": {
+    "description": "Button text for 'Previous' in tutorials"
+  },
+  "btnSkip": "Skip",
+  "@btnSkip": {
+    "description": "Button text for 'Skip' in tutorials"
+  }, 
+  "btnFinish": "Finish",
+  "@btnFinish": {
+    "description": "Button text for 'Finish' in tutorials"
+  },
+  "pickAColor": "Pick a color for the LED segment.",
+  "@pickAColor": {
+    "description": "Instruction to pick a color for LED segment"
+  },
+  "select": "Select",
+  "@select": {
+    "description": "Select Custom Color button text"
   }
 }
 

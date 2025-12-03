@@ -279,13 +279,41 @@ class _RemoteControlScreenState extends State<RemoteControlScreen> {
   }
 
   Future<void> _showLedControlDialog() async {
-    // Haptic is on the button that calls this.
     await showDialog(
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) {
-          // Define our "Off" color as pure black
           const Color offColor = Colors.black;
+          const Color customPickerColor = Colors.transparent;
+
+          void showColorWheel() {
+            showDialog(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: Text(AppLocalizations.of(context)!.pickAColor),
+                content: SingleChildScrollView(
+                  child: ColorPicker(
+                    pickerColor: _currentColor,
+                    onColorChanged: (color) {
+                      // We can update the color live, or wait for the user to confirm.
+                      // Let's update it live for a better experience.
+                      setDialogState(() => _currentColor = color);
+                    },
+                    pickerAreaHeightPercent: 0.8,
+                  ),
+                ),
+                actions: <Widget>[
+                  ElevatedButton(
+                    child: Text(AppLocalizations.of(context)!.select),
+                    onPressed: () {
+                      if (_hapticsEnabled) HapticFeedback.selectionClick();
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                ],
+              ),
+            );
+          }
 
           return AlertDialog(
             title: Text(AppLocalizations.of(context)!.ledControl),
@@ -309,7 +337,7 @@ class _RemoteControlScreenState extends State<RemoteControlScreen> {
                           if (_hapticsEnabled) {
                             await HapticFeedback.selectionClick();
                           }
-                          final physicalLed = ((index + 6) % 12) + 1;
+                          final physicalLed = ((index + 3) % 12) + 1;
                           setDialogState(() {
                             _ledColors[index] = _currentColor;
                           });
@@ -344,66 +372,90 @@ class _RemoteControlScreenState extends State<RemoteControlScreen> {
                           style: TextStyle(fontSize: 12),
                         ),
                         const SizedBox(height: 10),
-                        BlockPicker(
-                          pickerColor: _currentColor,
-                          onColorChanged: (color) async {
-                            if (_hapticsEnabled) 
-                            {
-                              await HapticFeedback.selectionClick();
-                            }
-                            setDialogState(() => _currentColor = color);
-                          },
-                          itemBuilder: (color, isCurrentColor, changeColor) {
-                            return GestureDetector(
-                              onTap: changeColor,
-                              child: Container(
-                                height: 50,
-                                width: 50,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: color,
-                                  boxShadow: [
-                                    if (isCurrentColor)
-                                      BoxShadow(
-                                        color: color,
-                                        blurRadius: 4,
-                                        spreadRadius: 2,
+                        Expanded(
+                          child: BlockPicker(
+                            pickerColor: _currentColor,
+                            onColorChanged: (color) async {
+                              if (_hapticsEnabled) {
+                                await HapticFeedback.selectionClick();
+                              }
+                              setDialogState(() => _currentColor = color);
+                            },
+                            itemBuilder: (color, isCurrentColor, changeColor) {
+                              if (color == customPickerColor) {
+                                return GestureDetector(
+                                  onTap: () {
+                                    if (_hapticsEnabled) HapticFeedback.lightImpact();
+                                    showColorWheel();
+                                  },
+                                  child: Container(
+                                    height: 50, width: 50,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      gradient: const LinearGradient(
+                                        colors: [Colors.red, Colors.green, Colors.blue],
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
                                       ),
-                                  ],
-                                  border: Border.all(
-                                    color: Colors.white,
-                                    width: isCurrentColor ? 2 : 0.5,
+                                      border: Border.all(color: Colors.white, width: 0.5),
+                                    ),
+                                    child: const Icon(Icons.colorize, color: Colors.white),
                                   ),
+                                );
+                              }
+                              
+                              return GestureDetector(
+                                onTap: changeColor,
+                                child: Container(
+                                  height: 50,
+                                  width: 50,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: color,
+                                    boxShadow: [
+                                      if (isCurrentColor)
+                                        BoxShadow(
+                                          color: color,
+                                          blurRadius: 4,
+                                          spreadRadius: 2,
+                                        ),
+                                    ],
+                                    border: Border.all(
+                                      color: Colors.white,
+                                      width: isCurrentColor ? 2 : 0.5,
+                                    ),
+                                  ),
+                                  child: color == offColor
+                                      ? const Icon(
+                                          Icons.power_settings_new,
+                                          color: Colors.white54,
+                                        )
+                                      : null,
                                 ),
-                                child: color == offColor
-                                    ? const Icon(
-                                        Icons.power_settings_new,
-                                        color: Colors.white54,
-                                      )
-                                    : null,
-                              ),
-                            );
-                          },
-                          availableColors: [
-                            offColor,
-                            Colors.red,
-                            Colors.pink,
-                            Colors.purple,
-                            Colors.deepPurple,
-                            Colors.indigo,
-                            Colors.blue,
-                            Colors.lightBlue,
-                            Colors.cyan,
-                            Colors.teal,
-                            Colors.green,
-                            Colors.lightGreen,
-                            Colors.lime,
-                            Colors.yellow,
-                            Colors.amber,
-                            Colors.orange,
-                            Colors.white,
-                          ],
-                        ),
+                              );
+                            },
+                            availableColors: [
+                              offColor,
+                              Colors.red,
+                              Colors.pink,
+                              Colors.purple,
+                              Colors.deepPurple,
+                              Colors.indigo,
+                              Colors.blue,
+                              Colors.lightBlue,
+                              Colors.cyan,
+                              Colors.teal,
+                              Colors.green,
+                              Colors.lightGreen,
+                              Colors.lime,
+                              Colors.yellow,
+                              Colors.amber,
+                              Colors.orange,
+                              Colors.white,
+                              customPickerColor
+                            ],
+                          ),
+                        )
                       ],
                     ),
                   ),
@@ -487,7 +539,7 @@ class _RemoteControlScreenState extends State<RemoteControlScreen> {
   }
 
   void _sendHeadCommand() {
-    int yaw = (90 + (_headX * 10)).clamp(80, 100).toInt();
+    int yaw = (90 + (-_headX * 10)).clamp(80, 100).toInt();
     int pitch = (90 + (-_headY * 10)).clamp(80, 100).toInt();
     if (_headX.abs() > 0.1 || _headY.abs() > 0.1) {
       _sendCommand({
@@ -539,7 +591,7 @@ class _RemoteControlScreenState extends State<RemoteControlScreen> {
           _soundButton(Icons.music_note, 1),
           _soundButton(Icons.notifications, 2),
           _soundButton(Icons.check_circle, 3),
-          _soundButton(Icons.warning, 0),
+          _soundButton(Icons.warning, 4),
         ]),
         actions: [
           TextButton(

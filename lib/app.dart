@@ -8,6 +8,11 @@ import 'services/preferences_service.dart';
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
+  static void setLocale(BuildContext context, Locale newLocale) {
+    _MyAppState? state = context.findAncestorStateOfType<_MyAppState>();
+    state?.changeLocale(newLocale);
+  }
+
   @override
   State<MyApp> createState() => _MyAppState();
 }
@@ -22,28 +27,34 @@ class _MyAppState extends State<MyApp> {
   }
 
   void _loadLocale() {
-    final savedLanguage = PreferencesService.instance.getSavedLanguage();
+    final prefs = PreferencesService.instance;
+    final savedLanguage = prefs.getSavedLanguage();
 
     if (savedLanguage != null) {
-      // User has explicitly chosen a language
       setState(() {
         _locale = Locale(savedLanguage);
       });
     } else {
-      // First time - detect device language
       final deviceLocale = WidgetsBinding.instance.platformDispatcher.locale;
-      final languageCode = deviceLocale.languageCode;
+      
+      final supportedLanguages = AppLocalizations.supportedLocales.map((l) => l.languageCode);
+      String languageToSet = 'en'; 
+      if (supportedLanguages.contains(deviceLocale.languageCode)) {
+        languageToSet = deviceLocale.languageCode;
+      }
 
-      // Check if device language is Indonesian, otherwise default to English
-      final selectedLanguage = (languageCode == 'id') ? 'id' : 'en';
-
-      // Save the detected language for future use
-      PreferencesService.instance.setLanguage(selectedLanguage);
+      prefs.setLanguage(languageToSet);
 
       setState(() {
-        _locale = Locale(selectedLanguage);
+        _locale = Locale(languageToSet);
       });
     }
+  }
+
+  void changeLocale(Locale locale) {
+    setState(() {
+      _locale = locale;
+    });
   }
 
   @override

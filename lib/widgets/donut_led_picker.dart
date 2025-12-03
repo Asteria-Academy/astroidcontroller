@@ -34,7 +34,7 @@ class DonutLedPicker extends StatelessWidget {
   void _handleTap(Offset tapPosition, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
     final radius = size.width / 2;
-    
+
     final translatedPoint = tapPosition - center;
     final distance = translatedPoint.distance;
 
@@ -42,21 +42,22 @@ class DonutLedPicker extends StatelessWidget {
       return;
     }
 
-    var angle = atan2(translatedPoint.dy, translatedPoint.dx) + (pi / 2);
+    var angle = atan2(translatedPoint.dy, translatedPoint.dx);
 
-    if (angle < 0) {
-      angle += 2 * pi;
-    }
+    // Adjust angle to include the combined π/18 + 90-degree offset
+    angle = (angle + (2 * pi)) % (2 * pi); // Normalize angle to [0, 2π)
+    const combinedOffset = pi / 18 + pi / 2; // π/18 + 90 degrees
+    angle = (angle + combinedOffset) % (2 * pi);
 
     final segmentAngle = (2 * pi) / 12;
     final index = (angle / segmentAngle).floor() % 12;
-    
+
     onSegmentTapped(index);
   }
 }
 
 class _DonutLedPainter extends CustomPainter {
-  _DonutLedPainter({ required this.ledColors, required this.strokeWidth });
+  _DonutLedPainter({required this.ledColors, required this.strokeWidth});
   final List<Color> ledColors;
   final double strokeWidth;
 
@@ -64,7 +65,10 @@ class _DonutLedPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
     final radius = size.width / 2;
-    final rect = Rect.fromCircle(center: center, radius: radius - strokeWidth / 2);
+    final rect = Rect.fromCircle(
+      center: center,
+      radius: radius - strokeWidth / 2,
+    );
 
     const totalAngle = 2 * pi;
     const segmentCount = 12;
@@ -72,8 +76,13 @@ class _DonutLedPainter extends CustomPainter {
     final sweepAngle = (totalAngle / segmentCount) - gapAngle;
 
     for (int i = 0; i < segmentCount; i++) {
-      final startAngle = (i * (sweepAngle + gapAngle)) - (pi / 2) - (gapAngle / 2);
-      
+      const visualOffset = -pi / 18;
+      final startAngle =
+          (i * (sweepAngle + gapAngle)) -
+          (pi / 2) -
+          (gapAngle / 2) +
+          visualOffset;
+
       final paint = Paint()
         ..color = ledColors[i]
         ..style = PaintingStyle.stroke
