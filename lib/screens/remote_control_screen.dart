@@ -1,5 +1,6 @@
 // ignore_for_file: deprecated_member_use
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
@@ -155,7 +156,15 @@ class _RemoteControlScreenState extends State<RemoteControlScreen> {
                     ? AppLocalizations.of(context)!.closeGripper
                     : AppLocalizations.of(context)!.openGripper,
               ),
-              onPressed: _toggleGripper,
+              onPressed: kDebugMode ? _toggleGripper : () {
+                if (_hapticsEnabled) HapticFeedback.lightImpact();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(AppLocalizations.of(context)!.upcomingFeature),
+                    duration: const Duration(seconds: 2),
+                  ),
+                );
+              },
               style: ElevatedButton.styleFrom(minimumSize: const Size(180, 48)),
             ),
             const SizedBox(height: 16),
@@ -180,7 +189,14 @@ class _RemoteControlScreenState extends State<RemoteControlScreen> {
             _buildFlyoutButton(
               Icons.smart_toy,
               AppLocalizations.of(context)!.modes,
-              _showModesDialog,
+              kDebugMode ? _showModesDialog : () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(AppLocalizations.of(context)!.upcomingFeature),
+                    duration: const Duration(seconds: 2),
+                  ),
+                );
+              },
             ),
           ],
         ),

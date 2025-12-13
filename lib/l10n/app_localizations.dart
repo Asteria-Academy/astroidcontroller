@@ -583,6 +583,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Select'**
   String get select;
+
+  /// Toast message for features that are not yet available
+  ///
+  /// In en, this message translates to:
+  /// **'Upcoming Feature'**
+  String get upcomingFeature;
 }
 
 class _AppLocalizationsDelegate

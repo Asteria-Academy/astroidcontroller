@@ -365,6 +365,10 @@
   "select": "Pilih",
   "@select": {
     "description": "Select Custom Color button text"
+  },
+  "upcomingFeature": "Fitur Akan Datang",
+  "@upcomingFeature": {
+    "description": "Toast message for features that are not yet available"
   }
 }
 

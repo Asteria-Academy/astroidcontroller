@@ -365,6 +365,10 @@
   "select": "Select",
   "@select": {
     "description": "Select Custom Color button text"
+  },
+  "upcomingFeature": "Upcoming Feature",
+  "@upcomingFeature": {
+    "description": "Toast message for features that are not yet available"
   }
 }
 

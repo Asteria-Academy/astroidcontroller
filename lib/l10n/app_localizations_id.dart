@@ -270,4 +270,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get select => 'Pilih';
+
+  @override
+  String get upcomingFeature => 'Fitur Akan Datang';
 }
