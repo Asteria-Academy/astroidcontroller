@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../router/app_router.dart';
 import '../services/preferences_service.dart';
+import '../services/sound_service.dart';
 
 class SplashGate extends StatefulWidget {
   const SplashGate({super.key});
@@ -18,6 +19,7 @@ class _SplashGateState extends State<SplashGate> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
+    SoundService.instance.ensurePlaying();
     _progressCtl =
         AnimationController(vsync: this, duration: const Duration(seconds: 3))
           ..addStatusListener((s) {

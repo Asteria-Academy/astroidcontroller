@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../services/preferences_service.dart';
 import '../l10n/app_localizations.dart';
 import '../app.dart';
+import '../services/sound_service.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -18,10 +19,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
   final PreferencesService _prefs = PreferencesService.instance;
   bool _hapticEnabled = true;
   String _selectedLanguage = 'en';
+  bool _bgmEnabled = true;
+  bool _sfxEnabled = true;
+  double _bgmVolume = 0.4;
+  double _sfxVolume = 1.0;
 
   @override
   void initState() {
     super.initState();
+    SoundService.instance.ensurePlaying();
     _loadPreferences();
   }
 
@@ -29,10 +35,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
     setState(() {
       _hapticEnabled = _prefs.isHapticFeedbackEnabled();
       _selectedLanguage = _prefs.getLanguage();
+      _bgmEnabled = _prefs.isMusicEnabled();
+      _sfxEnabled = _prefs.isSfxEnabled();
+      _bgmVolume = _prefs.getMusicVolume();
+      _sfxVolume = _prefs.getSfxVolume();
     });
   }
 
   void _toggleHaptic(bool value) {
+    SoundService.instance.playClick();
     if (_hapticEnabled) HapticFeedback.selectionClick();
     setState(() {
       _hapticEnabled = value;
@@ -40,8 +51,55 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _prefs.setHapticFeedback(value);
   }
 
+  Future<void> _toggleBgm(bool value) async {
+    SoundService.instance.playClick();
+    if (_hapticEnabled) HapticFeedback.selectionClick();
+    setState(() {
+      _bgmEnabled = value;
+    });
+    await _prefs.setMusicEnabled(value);
+    await SoundService.instance.setBgmEnabled(value);
+    if (value) {
+      await SoundService.instance.setBgmVolume(_bgmVolume);
+    }
+  }
+
+  Future<void> _toggleSfx(bool value) async {
+    SoundService.instance.playClick();
+    if (_hapticEnabled) HapticFeedback.selectionClick();
+    setState(() {
+      _sfxEnabled = value;
+    });
+    await _prefs.setSfxEnabled(value);
+    await SoundService.instance.setSfxEnabled(value);
+    if (value) {
+      await SoundService.instance.setSfxVolume(_sfxVolume);
+      await SoundService.instance.playClick();
+    }
+  }
+
+  Future<void> _onBgmVolumeChanged(double value) async {
+    setState(() {
+      _bgmVolume = value;
+    });
+    await _prefs.setMusicVolume(value);
+    await SoundService.instance.setBgmVolume(value);
+  }
+
+  Future<void> _onSfxVolumeChanged(double value, {bool preview = false}) async {
+    setState(() {
+      _sfxVolume = value;
+    });
+    await _prefs.setSfxVolume(value);
+    await SoundService.instance.setSfxVolume(value);
+    if (preview && _sfxEnabled && value > 0) {
+      await SoundService.instance.playClick();
+    }
+  }
+
   void _changeLanguage(String? languageCode) async {
     if (languageCode == null) return;
+    SoundService.instance.playClick();
     if (_hapticEnabled) HapticFeedback.selectionClick();
 
     await _prefs.setLanguage(languageCode);
@@ -56,6 +114,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   void _showTutorial() async {
+    SoundService.instance.playClick();
     if (_hapticEnabled) HapticFeedback.mediumImpact();
 
     final prefs = PreferencesService.instance;
@@ -71,6 +130,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   void _showAbout() {
+    SoundService.instance.playClick();
     if (_hapticEnabled) HapticFeedback.lightImpact();
     showAboutDialog(
       context: context,
@@ -152,6 +212,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               child: IconButton(
                 icon: const Icon(Icons.close, color: Colors.white, size: 32),
                 onPressed: () {
+                  SoundService.instance.playClick();
                   if (_prefs.isHapticFeedbackEnabled()) 
                   {
                     HapticFeedback.lightImpact();
@@ -281,6 +342,36 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
                         const SizedBox(height: 16),
 
+                        _buildSoundControl(
+                          icon: Icons.music_note,
+                          title: AppLocalizations.of(context)!.bgm,
+                          subtitle: AppLocalizations.of(context)!.bgmDesc,
+                          enabled: _bgmEnabled,
+                          volume: _bgmVolume,
+                          onToggle: _toggleBgm,
+                          onVolumeChanged:
+                              _bgmEnabled ? _onBgmVolumeChanged : null,
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        _buildSoundControl(
+                          icon: Icons.graphic_eq,
+                          title: AppLocalizations.of(context)!.sfx,
+                          subtitle: AppLocalizations.of(context)!.sfxDesc,
+                          enabled: _sfxEnabled,
+                          volume: _sfxVolume,
+                          onToggle: _toggleSfx,
+                          onVolumeChanged:
+                              _sfxEnabled ? _onSfxVolumeChanged : null,
+                          onVolumeChangeEnd: _sfxEnabled
+                              ? (value) =>
+                                  _onSfxVolumeChanged(value, preview: true)
+                              : null,
+                        ),
+
+                        const SizedBox(height: 16),
+
                         // Show Tutorial Button
                         _buildSettingRow(
                           icon: Icons.lightbulb_outline,
@@ -308,7 +399,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           trailing: Switch(
                             value: _hapticEnabled,
                             onChanged: _toggleHaptic,
-                            activeThumbColor: Colors.deepPurpleAccent,
+                            activeColor: Colors.deepPurpleAccent,
                           ),
                         ),
 
@@ -345,6 +436,107 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ],
               ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSoundControl({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required bool enabled,
+    required double volume,
+    required ValueChanged<bool> onToggle,
+    ValueChanged<double>? onVolumeChanged,
+    ValueChanged<double>? onVolumeChangeEnd,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color.fromARGB(26, 0, 0, 0),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color.fromARGB(51, 255, 255, 255)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color.fromARGB(51, 124, 77, 255),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, color: Colors.deepPurpleAccent, size: 24),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      subtitle,
+                      style: const TextStyle(
+                        color: Color.fromARGB(179, 255, 255, 255),
+                        fontSize: 11,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Switch(
+                value: enabled,
+                onChanged: onToggle,
+                activeColor: Colors.deepPurpleAccent,
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                AppLocalizations.of(context)!.volume,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              Text(
+                '${(volume * 100).round()}%',
+                style: const TextStyle(
+                  color: Color.fromARGB(179, 255, 255, 255),
+                  fontSize: 12,
+                ),
+              ),
+            ],
+          ),
+          SliderTheme(
+            data: SliderTheme.of(context).copyWith(
+              overlayShape: SliderComponentShape.noOverlay,
+            ),
+            child: Slider(
+              value: volume.clamp(0.0, 1.0),
+              min: 0,
+              max: 1,
+              onChanged: onVolumeChanged,
+              onChangeEnd: onVolumeChangeEnd,
+              activeColor: Colors.deepPurpleAccent,
+              inactiveColor: Colors.white24,
             ),
           ),
         ],

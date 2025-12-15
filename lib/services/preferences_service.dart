@@ -10,6 +10,10 @@ class PreferencesService {
   static const String _keyShowcaseConnectedShown = 'showcase_connected_shown';
   static const String _keyHapticFeedback = 'haptic_feedback_enabled';
   static const String _keyLanguage = 'app_language';
+  static const String _keyMusicEnabled = 'music_enabled';
+  static const String _keyMusicVolume = 'music_volume';
+  static const String _keySfxEnabled = 'sfx_enabled';
+  static const String _keySfxVolume = 'sfx_volume';
 
   PreferencesService._();
 
@@ -74,6 +78,41 @@ class PreferencesService {
 
   Future<bool> setLanguage(String languageCode) async {
     return await _prefs?.setString(_keyLanguage, languageCode) ?? false;
+  }
+
+  // ============================
+  // Sound
+  // ============================
+  bool isMusicEnabled() {
+    return _prefs?.getBool(_keyMusicEnabled) ?? true;
+  }
+
+  Future<bool> setMusicEnabled(bool enabled) async {
+    return await _prefs?.setBool(_keyMusicEnabled, enabled) ?? false;
+  }
+
+  double getMusicVolume() {
+    return _prefs?.getDouble(_keyMusicVolume) ?? 0.4;
+  }
+
+  Future<bool> setMusicVolume(double volume) async {
+    return await _prefs?.setDouble(_keyMusicVolume, volume) ?? false;
+  }
+
+  bool isSfxEnabled() {
+    return _prefs?.getBool(_keySfxEnabled) ?? true;
+  }
+
+  Future<bool> setSfxEnabled(bool enabled) async {
+    return await _prefs?.setBool(_keySfxEnabled, enabled) ?? false;
+  }
+
+  double getSfxVolume() {
+    return _prefs?.getDouble(_keySfxVolume) ?? 1.0;
+  }
+
+  Future<bool> setSfxVolume(double volume) async {
+    return await _prefs?.setDouble(_keySfxVolume, volume) ?? false;
   }
 
   // ============================

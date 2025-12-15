@@ -10,6 +10,7 @@ import '../services/bluetooth_service.dart';
 import '../services/preferences_service.dart';
 import '../l10n/app_localizations.dart';
 import '../widgets/donut_led_picker.dart';
+import '../services/sound_service.dart';
 
 class RemoteControlScreen extends StatefulWidget {
   const RemoteControlScreen({super.key});
@@ -38,6 +39,7 @@ class _RemoteControlScreenState extends State<RemoteControlScreen> {
   @override
   void initState() {
     super.initState();
+    SoundService.instance.ensurePlaying();
     _driveTimer = Timer.periodic(
       const Duration(milliseconds: 100),
       (_) => _sendDriveCommand(),
@@ -104,9 +106,14 @@ class _RemoteControlScreenState extends State<RemoteControlScreen> {
                       btService.connectedDevice?.platformName ??
                       'Not Connected',
                   batteryLevel: btService.batteryLevel,
-                  onBackPressed: () => Navigator.of(context).pop(),
-                  onEstopPressed: () =>
-                      _sendCommand({"command": "ESTOP", "params": {}}),
+                  onBackPressed: () {
+                    SoundService.instance.playClick();
+                    Navigator.of(context).pop();
+                  },
+                  onEstopPressed: () {
+                    SoundService.instance.playClick();
+                    _sendCommand({"command": "ESTOP", "params": {}});
+                  },
                 ),
                 Expanded(
                   child: Padding(
@@ -157,6 +164,7 @@ class _RemoteControlScreenState extends State<RemoteControlScreen> {
                     : AppLocalizations.of(context)!.openGripper,
               ),
               onPressed: kDebugMode ? _toggleGripper : () {
+                SoundService.instance.playClick();
                 if (_hapticsEnabled) HapticFeedback.lightImpact();
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
@@ -322,6 +330,7 @@ class _RemoteControlScreenState extends State<RemoteControlScreen> {
                   ElevatedButton(
                     child: Text(AppLocalizations.of(context)!.select),
                     onPressed: () {
+                      SoundService.instance.playClick();
                       if (_hapticsEnabled) HapticFeedback.selectionClick();
                       Navigator.of(context).pop();
                     },
@@ -483,6 +492,7 @@ class _RemoteControlScreenState extends State<RemoteControlScreen> {
                 icon: const Icon(Icons.select_all),
                 label: Text(AppLocalizations.of(context)!.setAllLeds),
                 onPressed: () async {
+                  SoundService.instance.playClick();
                   if (_hapticsEnabled) await HapticFeedback.lightImpact();
                   setDialogState(
                     () => _ledColors = List.generate(12, (_) => _currentColor),
@@ -500,7 +510,11 @@ class _RemoteControlScreenState extends State<RemoteControlScreen> {
               ),
               TextButton(
                 child: Text(AppLocalizations.of(context)!.done),
-                onPressed: () => Navigator.of(context).pop(),
+                onPressed: () {
+                  SoundService.instance.playClick();
+                  if (_hapticsEnabled) HapticFeedback.selectionClick();
+                  Navigator.of(context).pop();
+                },
               ),
             ],
           );
@@ -526,6 +540,7 @@ class _RemoteControlScreenState extends State<RemoteControlScreen> {
   }
 
   void _toggleGripper() {
+    SoundService.instance.playClick();
     if (_hapticsEnabled) HapticFeedback.lightImpact();
     setState(() => _isGripperOpen = !_isGripperOpen);
     _sendCommand({
@@ -543,6 +558,7 @@ class _RemoteControlScreenState extends State<RemoteControlScreen> {
       icon: Icon(icon),
       label: Text(label),
       onPressed: () {
+        SoundService.instance.playClick();
         if (_hapticsEnabled) HapticFeedback.lightImpact();
         onPressed();
       },
@@ -590,7 +606,11 @@ class _RemoteControlScreenState extends State<RemoteControlScreen> {
         ]),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () {
+              SoundService.instance.playClick();
+              if (_hapticsEnabled) HapticFeedback.selectionClick();
+              Navigator.of(context).pop();
+            },
             child: Text(AppLocalizations.of(context)!.close),
           ),
         ],
@@ -611,7 +631,11 @@ class _RemoteControlScreenState extends State<RemoteControlScreen> {
         ]),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () {
+              SoundService.instance.playClick();
+              if (_hapticsEnabled) HapticFeedback.selectionClick();
+              Navigator.of(context).pop();
+            },
             child: Text(AppLocalizations.of(context)!.close),
           ),
         ],
@@ -640,23 +664,29 @@ class _RemoteControlScreenState extends State<RemoteControlScreen> {
                             child: Text(
                               AppLocalizations.of(context)!.startStop,
                             ),
-                            onPressed: () => _sendCommand({
-                              "command": "SET_AUTONOMOUS_STATE",
-                              "params": {
-                                "mode": "line_follower",
-                                "active": true,
-                              },
-                            }),
+                            onPressed: () {
+                              SoundService.instance.playClick();
+                              _sendCommand({
+                                "command": "SET_AUTONOMOUS_STATE",
+                                "params": {
+                                  "mode": "line_follower",
+                                  "active": true,
+                                },
+                              });
+                            },
                           ),
                           const SizedBox(width: 10),
                           ElevatedButton(
                             child: Text(
                               AppLocalizations.of(context)!.calibrate,
                             ),
-                            onPressed: () => _sendCommand({
-                              "command": "CALIBRATE_SENSORS",
-                              "params": {},
-                            }),
+                            onPressed: () {
+                              SoundService.instance.playClick();
+                              _sendCommand({
+                                "command": "CALIBRATE_SENSORS",
+                                "params": {},
+                              });
+                            },
                           ),
                         ],
                       ),
@@ -691,7 +721,11 @@ class _RemoteControlScreenState extends State<RemoteControlScreen> {
             ),
             actions: [
               TextButton(
-                onPressed: () => Navigator.of(context).pop(),
+                onPressed: () {
+                  SoundService.instance.playClick();
+                  if (_hapticsEnabled) HapticFeedback.selectionClick();
+                  Navigator.of(context).pop();
+                },
                 child: Text(AppLocalizations.of(context)!.close),
               ),
             ],
@@ -735,6 +769,7 @@ class _RemoteControlScreenState extends State<RemoteControlScreen> {
   Widget _iconButton(IconData icon, String iconName, Color color) {
     return ElevatedButton(
       onPressed: () {
+        SoundService.instance.playClick();
         _sendCommand({
           "command": "DISPLAY_ICON",
           "params": {"icon_name": iconName},
@@ -752,6 +787,7 @@ class _RemoteControlScreenState extends State<RemoteControlScreen> {
   Widget _soundButton(IconData icon, int soundId) {
     return ElevatedButton(
       onPressed: () {
+        SoundService.instance.playClick();
         _sendCommand({
           "command": "PLAY_INTERNAL_SOUND",
           "params": {"sound_id": soundId},
@@ -777,10 +813,11 @@ class _RemoteControlScreenState extends State<RemoteControlScreen> {
         Switch(
           value: value,
           onChanged: (active) {
+            SoundService.instance.playClick();
             _setGestureMode(mode, active);
             setDialogState(() {});
           },
-          activeThumbColor: Colors.deepPurpleAccent,
+          activeColor: Colors.deepPurpleAccent,
         ),
       ],
     );

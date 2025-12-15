@@ -140,6 +140,36 @@ abstract class AppLocalizations {
   /// **'Feel button presses'**
   String get hapticFeedbackDesc;
 
+  /// Setting label for background music toggle
+  ///
+  /// In en, this message translates to:
+  /// **'Background Music'**
+  String get bgm;
+
+  /// Description for background music setting
+  ///
+  /// In en, this message translates to:
+  /// **'Keep music playing while using the app'**
+  String get bgmDesc;
+
+  /// Setting label for sound effects toggle
+  ///
+  /// In en, this message translates to:
+  /// **'Sound Effects'**
+  String get sfx;
+
+  /// Description for sound effects setting
+  ///
+  /// In en, this message translates to:
+  /// **'Button clicks and interface sounds'**
+  String get sfxDesc;
+
+  /// Label for volume slider
+  ///
+  /// In en, this message translates to:
+  /// **'Volume'**
+  String get volume;
+
   /// Button to replay the tutorial
   ///
   /// In en, this message translates to:

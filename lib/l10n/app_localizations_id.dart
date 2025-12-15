@@ -30,6 +30,21 @@ class AppLocalizationsId extends AppLocalizations {
   String get hapticFeedbackDesc => 'Rasakan sentuhan tombol';
 
   @override
+  String get bgm => 'Musik Latar';
+
+  @override
+  String get bgmDesc => 'Putar musik selama aplikasi digunakan';
+
+  @override
+  String get sfx => 'Efek Suara';
+
+  @override
+  String get sfxDesc => 'Suara klik tombol dan antarmuka';
+
+  @override
+  String get volume => 'Volume';
+
+  @override
   String get showTutorial => 'Tampilkan Tutorial';
 
   @override

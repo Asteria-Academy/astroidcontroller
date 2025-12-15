@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart' as fbp;
 import '../services/bluetooth_service.dart';
 import '../l10n/app_localizations.dart';
+import '../services/sound_service.dart';
 
 enum _ConnectingStatus { connecting, success, failed }
 
@@ -23,6 +24,7 @@ class _ConnectingScreenState extends State<ConnectingScreen> {
   @override
   void initState() {
     super.initState();
+    SoundService.instance.ensurePlaying();
     _attemptConnection();
   }
 
@@ -86,7 +88,10 @@ class _ConnectingScreenState extends State<ConnectingScreen> {
           subtitle:
               _errorReason ?? AppLocalizations.of(context)!.couldNotConnect,
           buttonText: AppLocalizations.of(context)!.goBack,
-          onButtonPressed: () => Navigator.of(context).pop(false),
+          onButtonPressed: () {
+            SoundService.instance.playClick();
+            Navigator.of(context).pop(false);
+          },
         );
 
       case _ConnectingStatus.connecting:
@@ -100,6 +105,7 @@ class _ConnectingScreenState extends State<ConnectingScreen> {
           )!.establishingLink(widget.device.platformName),
           buttonText: AppLocalizations.of(context)!.cancel,
           onButtonPressed: () {
+            SoundService.instance.playClick();
             _btService.disconnect();
             Navigator.of(context).pop(false);
           },

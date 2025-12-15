@@ -3,6 +3,7 @@ import 'package:flutter_blue_plus/flutter_blue_plus.dart' as fbp;
 import '../services/bluetooth_service.dart';
 import '../router/app_router.dart';
 import '../l10n/app_localizations.dart';
+import '../services/sound_service.dart';
 
 class ConnectScreen extends StatefulWidget {
   const ConnectScreen({super.key});
@@ -17,6 +18,7 @@ class _ConnectScreenState extends State<ConnectScreen> {
   @override
   void initState() {
     super.initState();
+    SoundService.instance.ensurePlaying();
     _btService.addListener(_onServiceChanged);
   }
 
@@ -34,6 +36,7 @@ class _ConnectScreenState extends State<ConnectScreen> {
   }
 
   void _handleConnectToDevice(fbp.BluetoothDevice device) async {
+    SoundService.instance.playClick();
     _btService.stopScan();
 
     if (!mounted) return;
@@ -101,7 +104,10 @@ class _ConnectScreenState extends State<ConnectScreen> {
         children: [
           IconButton(
             icon: const Icon(Icons.arrow_back, color: Colors.white),
-            onPressed: () => Navigator.pop(context),
+            onPressed: () {
+              SoundService.instance.playClick();
+              Navigator.pop(context);
+            },
           ),
           const SizedBox(width: 12),
           Text(
@@ -163,7 +169,10 @@ class _ConnectScreenState extends State<ConnectScreen> {
             ),
           ),
           TextButton(
-            onPressed: _btService.disconnect,
+            onPressed: () {
+              SoundService.instance.playClick();
+              _btService.disconnect();
+            },
             child: Text(
               AppLocalizations.of(context)!.disconnect,
               style: const TextStyle(color: Colors.white70),
@@ -318,7 +327,12 @@ class _ConnectScreenState extends State<ConnectScreen> {
         width: double.infinity,
         height: 56,
         child: ElevatedButton(
-          onPressed: isScanning ? null : _btService.startScan,
+          onPressed: isScanning
+              ? null
+              : () {
+                  SoundService.instance.playClick();
+                  _btService.startScan();
+                },
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.cyan,
             disabledBackgroundColor: const Color(0x8000BCD4),

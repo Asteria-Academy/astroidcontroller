@@ -30,6 +30,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get hapticFeedbackDesc => 'Feel button presses';
 
   @override
+  String get bgm => 'Background Music';
+
+  @override
+  String get bgmDesc => 'Keep music playing while using the app';
+
+  @override
+  String get sfx => 'Sound Effects';
+
+  @override
+  String get sfxDesc => 'Button clicks and interface sounds';
+
+  @override
+  String get volume => 'Volume';
+
+  @override
   String get showTutorial => 'Show Tutorial';
 
   @override

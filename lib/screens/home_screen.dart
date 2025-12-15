@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../router/app_router.dart';
 import '../services/bluetooth_service.dart';
 import '../l10n/app_localizations.dart';
+import '../services/sound_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -19,6 +20,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    SoundService.instance.ensurePlaying();
     _btService.addListener(_onServiceChanged);
   }
 
@@ -35,6 +37,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _openSettings() async {
+    SoundService.instance.playClick();
     Navigator.pushNamed(context, AppRoutes.settings);
   }
 
@@ -344,7 +347,10 @@ class _GalaxyPanel extends StatelessWidget {
 
     return InkWell(
       borderRadius: radius,
-      onTap: onTap,
+      onTap: () {
+        SoundService.instance.playClick();
+        onTap();
+      },
       child: Container(
         width: width,
         height: height,

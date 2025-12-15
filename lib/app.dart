@@ -4,6 +4,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'router/app_router.dart';
 import 'l10n/app_localizations.dart';
 import 'services/preferences_service.dart';
+import 'services/sound_service.dart';
 
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
@@ -19,11 +20,14 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   Locale? _locale;
+  final _lifecycleObserver = _AppLifecycleObserver();
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(_lifecycleObserver);
     _loadLocale();
+    SoundService.instance.ensurePlaying();
   }
 
   void _loadLocale() {
@@ -91,5 +95,28 @@ class _MyAppState extends State<MyApp> {
       initialRoute: AppRoutes.splash, // Start with splash screen
       onGenerateRoute: onGenerateRoute,
     );
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(_lifecycleObserver);
+    super.dispose();
+  }
+}
+
+class _AppLifecycleObserver with WidgetsBindingObserver {
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    switch (state) {
+      case AppLifecycleState.resumed:
+        SoundService.instance.resumeBgmIfEnabled();
+        break;
+      case AppLifecycleState.inactive:
+      case AppLifecycleState.paused:
+      case AppLifecycleState.detached:
+      case AppLifecycleState.hidden:
+        SoundService.instance.pauseBgm();
+        break;
+    }
   }
 }

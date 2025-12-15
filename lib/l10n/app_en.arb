@@ -28,6 +28,26 @@
   "@hapticFeedbackDesc": {
     "description": "Description for haptic feedback setting"
   },
+  "bgm": "Background Music",
+  "@bgm": {
+    "description": "Setting label for background music toggle"
+  },
+  "bgmDesc": "Keep music playing while using the app",
+  "@bgmDesc": {
+    "description": "Description for background music setting"
+  },
+  "sfx": "Sound Effects",
+  "@sfx": {
+    "description": "Setting label for sound effects toggle"
+  },
+  "sfxDesc": "Button clicks and interface sounds",
+  "@sfxDesc": {
+    "description": "Description for sound effects setting"
+  },
+  "volume": "Volume",
+  "@volume": {
+    "description": "Label for volume slider"
+  },
   "showTutorial": "Show Tutorial",
   "@showTutorial": {
     "description": "Button to replay the tutorial"
@@ -371,4 +391,3 @@
     "description": "Toast message for features that are not yet available"
   }
 }
-

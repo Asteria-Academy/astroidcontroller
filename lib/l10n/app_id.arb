@@ -28,6 +28,26 @@
   "@hapticFeedbackDesc": {
     "description": "Description for haptic feedback setting"
   },
+  "bgm": "Musik Latar",
+  "@bgm": {
+    "description": "Setting label for background music toggle"
+  },
+  "bgmDesc": "Putar musik selama aplikasi digunakan",
+  "@bgmDesc": {
+    "description": "Description for background music setting"
+  },
+  "sfx": "Efek Suara",
+  "@sfx": {
+    "description": "Setting label for sound effects toggle"
+  },
+  "sfxDesc": "Suara klik tombol dan antarmuka",
+  "@sfxDesc": {
+    "description": "Description for sound effects setting"
+  },
+  "volume": "Volume",
+  "@volume": {
+    "description": "Label for volume slider"
+  },
   "showTutorial": "Tampilkan Tutorial",
   "@showTutorial": {
     "description": "Button to replay the tutorial"
@@ -371,4 +391,3 @@
     "description": "Toast message for features that are not yet available"
   }
 }
-

@@ -7,6 +7,7 @@ import 'package:showcaseview/showcaseview.dart';
 import '../l10n/app_localizations.dart';
 import '../router/app_router.dart';
 import '../services/preferences_service.dart';
+import '../services/sound_service.dart';
 
 part 'tutorial_widgets.dart';
 
@@ -32,6 +33,7 @@ class _TutorialScreenState extends State<TutorialScreen> {
   @override
   void initState() {
     super.initState();
+    SoundService.instance.ensurePlaying();
     _showcaseKeys = [_statusKey, _connectKey, _remoteKey, _disconnectKey, _settingsKey];
 
     ShowcaseView.register(
@@ -55,6 +57,7 @@ class _TutorialScreenState extends State<TutorialScreen> {
   }
   
   void _onConnectShowcaseNext() {
+    SoundService.instance.playClick();
     setState(() {
       _isShowingConnectedState = true;
     });
@@ -62,6 +65,7 @@ class _TutorialScreenState extends State<TutorialScreen> {
   }
 
   void _onRemoteShowcasePrevious() {
+    SoundService.instance.playClick();
     setState(() {
       _isShowingConnectedState = false;
     });
@@ -69,6 +73,7 @@ class _TutorialScreenState extends State<TutorialScreen> {
   }
   
   void _onFinishTutorial() async {
+    SoundService.instance.playClick();
     final prefs = PreferencesService.instance;
     await prefs.setShowcaseShown(true);
     
